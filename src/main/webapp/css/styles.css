@@ -2603,9 +2603,29 @@ label {
 }
 
 
-#labelEncomenda{
+#labelEncomenda {
 	font-size: 0.9rem;
 	font-weight: 500;
 	color: black;
 	margin-bottom: 0.5rem;
+}
+
+#home-content,
+#pro-inventario {
+	transition: opacity 0.3s ease;
+}
+
+#home-content.hidden,
+#pro-inventario.hidden {
+	opacity: 0;
+	display: none;
+}
+
+/* Ensure pro-inventario is visible when not hidden */
+#pro-inventario {
+	display: block;
+}
+
+.hidden {
+    display: none !important;
 }

@@ -73,6 +73,46 @@ const ProductoService = {
         }
     },
 
+    async findByProductosDestaques(pagination) {
+        try {
+            const queryParams = new URLSearchParams({
+                page: pagination.page || 1,
+                size: pagination.size || 30
+            });
+
+            const url = `http://192.168.99.40:8080/ciberloja-rest-api/api/producto/searchDestaques?${queryParams}`;
+            console.log("Enviando petición a:", url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error al buscar productos: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log("Productos encontrados:", {
+                total: data.total,
+                pageLength: data.page?.length,
+                firstId: data.page?.[0]?.id,
+                lastId: data.page?.[data.page.length - 1]?.id
+            });
+
+            return {
+                page: data.page || [],
+                total: data.total || data.page.length,
+                totalPages: data.totalPages || Math.ceil((data.total || data.page.length) / (pagination.size || 30))
+            };
+        } catch (error) {
+            console.error("Error al buscar productos por criterios:", error);
+            throw new Error(`Error al buscar productos: ${error.message}`);
+        }
+    },
 
     async createProducto(productoData) {
         try {

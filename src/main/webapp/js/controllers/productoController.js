@@ -15,36 +15,46 @@ function debounce(func, delay) {
 
 const ProductoController = {
     previousResults: [],
-    allResults: [], // Almacenar todos los resultados sin filtrar por página
+    allResults: [],
     currentPage: 1,
     itemsPerPage: 30,
     totalItems: 0,
     totalPages: 0,
     currentLang: 'pt',
     lastFilters: {},
+    productSource: null, // Track source of product (highlighted or search)
 
     init(action, lang = 'pt') {
         console.log(`ProductoController.init(${action}, ${lang})...`);
         this.currentLang = lang;
         this.currentAction = action;
 
+        // Limpiar pro-inventario explícitamente para acción home
+        const proInventario = document.getElementById("pro-inventario");
+        if (proInventario && action === "home") {
+            proInventario.innerHTML = "";
+            proInventario.classList.add("hidden");
+            console.log("pro-inventario limpiado en ProductoController.init para home");
+        }
+
         if (action === "search") {
             this.loadProductoSearchForm();
         } else if (action === "create") {
             if (App.isEmpleado()) {
                 this.loadProductoAddForm();
-            } else {
-                alert(Translations[lang].alerts.employeeOnlyCreate);
-                this.loadProductoSearchForm();
             }
+        } else if (action === "home") {
+            this.loadHighlightedProducts();
         }
     },
-
     setupEvents() {
         console.log("ProductoController.setupEvents()...");
         this.setupSearchInputs();
 
-        document.removeEventListener("click", this.handleDocumentClick);
+        // Remover el listener anterior si existe
+        if (this.handleDocumentClick) {
+            document.removeEventListener("click", this.handleDocumentClick);
+        }
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
         document.addEventListener("click", this.handleDocumentClick);
 
@@ -75,14 +85,12 @@ const ProductoController = {
             searchForm.hasListener = true;
         }
 
-        // Evento para la barra de búsqueda global
         const globalSearch = document.getElementById("globalSearch");
         if (globalSearch && !globalSearch.hasListener) {
             globalSearch.addEventListener("input", debounce(() => this.handleSearch(), 300));
             globalSearch.hasListener = true;
         }
 
-        // Evento para limpiar la barra de búsqueda global
         const clearGlobalSearch = document.getElementById("clearGlobalSearch");
         if (clearGlobalSearch && !clearGlobalSearch.hasListener) {
             clearGlobalSearch.addEventListener("click", () => {
@@ -91,6 +99,74 @@ const ProductoController = {
             });
             clearGlobalSearch.hasListener = true;
         }
+    },
+
+    async loadHighlightedProducts() {
+        console.log("Cargando productos destacados...");
+        const proInventario = document.getElementById("pro-inventario");
+        if (proInventario) {
+            proInventario.innerHTML = "";
+            proInventario.classList.add("hidden");
+            console.log("pro-inventario limpiado en loadHighlightedProducts");
+        }
+
+        try {
+            const response = await ProductoService.findByProductosDestaques({
+                page: 1,
+                size: this.itemsPerPage
+            });
+
+            console.log("Productos destacados obtenidos:", {
+                pageLength: response.page?.length,
+                total: response.total,
+                totalPages: response.totalPages
+            });
+
+            if (response && Array.isArray(response.page)) {
+                let highlightedProducts = response.page;
+
+                const imagePromises = highlightedProducts.map(p =>
+                    FileService.getImagesByProductoId(p.id).catch(() => [])
+                );
+                const imageResults = await Promise.all(imagePromises);
+                highlightedProducts.forEach((p, i) => p.images = imageResults[i]);
+
+                this.allResults = highlightedProducts;
+                this.totalItems = highlightedProducts.length;
+                this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.itemsPerPage));
+
+                this.renderHighlightedProducts();
+                this.setupEvents();
+            } else {
+                this.allResults = [];
+                this.totalItems = 0;
+                this.totalPages = 0;
+                ProductoView.renderResults([], "highlighted-products", this.currentPage, this.itemsPerPage, this.totalItems, this.currentLang);
+            }
+        } catch (error) {
+            console.error("Error al cargar productos destacados:", error);
+            this.allResults = [];
+            this.totalItems = 0;
+            this.totalPages = 0;
+            ProductoView.renderResults([], "highlighted-products", this.currentPage, this.itemsPerPage, this.totalItems, this.currentLang);
+        }
+    },
+
+    renderHighlightedProducts() {
+        console.log(`Renderizando productos destacados página ${this.currentPage} de ${this.totalPages}`);
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = Math.min(startIndex + this.itemsPerPage, this.allResults.length);
+
+        this.previousResults = this.allResults.slice(startIndex, endIndex);
+
+        ProductoView.renderResults(
+            this.previousResults,
+            "highlighted-products",
+            this.currentPage,
+            this.itemsPerPage,
+            this.totalItems,
+            this.currentLang
+        );
     },
 
     clearSearchForm() {
@@ -110,16 +186,197 @@ const ProductoController = {
         }
     },
 
+    // En ProductoController.js, reemplaza el método showPreviousResults con este:
+
+    // Y también modifica el método fetchProductoInfo para establecer correctamente el productSource:
+
+    async fetchProductoInfo(productId) {
+        try {
+            const producto = await ProductoService.findById(productId);
+            if (!producto) {
+                throw new Error(Translations[this.currentLang].alerts.productNotFound);
+            }
+
+            try {
+                const images = await FileService.getImagesByProductoId(productId);
+                producto.images = images || [];
+            } catch (imageError) {
+                console.warn(`No se pudieron cargar las imágenes para el producto ${productId}:`, imageError);
+                producto.images = [];
+            }
+
+            // Determinar correctamente el origen del producto
+            const homeContent = document.getElementById("home-content");
+            const proInventario = document.getElementById("pro-inventario");
+
+            // Si el home-content está visible, significa que venimos de productos destacados
+            if (homeContent && !homeContent.classList.contains("hidden")) {
+                this.productSource = "highlighted";
+                homeContent.classList.add("hidden");
+                console.log("productSource establecido como 'highlighted' - venimos del home");
+            } else {
+                // Si ya estamos en pro-inventario (búsqueda), mantenemos como search
+                this.productSource = "search";
+                console.log("productSource establecido como 'search' - venimos de búsqueda");
+            }
+
+            // Asegurarse de que el contenedor pro-inventario esté visible y limpio
+            if (proInventario) {
+                proInventario.innerHTML = "";
+                proInventario.classList.remove("hidden");
+            }
+
+            // Actualizar la URL
+            window.location.hash = `#producto/${productId}`;
+
+            // Renderizar los detalles del producto
+            ProductoView.renderProductoDetails(producto, "pro-inventario", App.isEmpleado(), this.currentLang);
+
+            // Configurar eventos para el formulario de actualización si es empleado
+            this.setupProductDetailEvents();
+
+        } catch (error) {
+            console.error("Error al obtener la información del producto:", error);
+            alert(Translations[this.currentLang].alerts.loadProductError);
+            this.showPreviousResults();
+        }
+    },
+
+    showPreviousResults() {
+        const container = document.getElementById("pro-inventario");
+        const homeContent = document.getElementById("home-content");
+
+        if (!container) {
+            console.error("Contenedor pro-inventario no encontrado");
+            return;
+        }
+
+        console.log("showPreviousResults called, productSource:", this.productSource);
+
+        if (this.productSource === "highlighted") {
+            console.log("Volviendo desde producto destacado...");
+
+            // Limpiar y ocultar pro-inventario completamente
+            container.innerHTML = "";
+            container.classList.add("hidden");
+
+            // Mostrar el contenido de home
+            if (homeContent) {
+                homeContent.classList.remove("hidden");
+            }
+
+            // Actualizar la URL sin recargar
+            window.location.hash = "#home";
+
+            // Resetear el estado del producto
+            this.productSource = null;
+
+            // Detener ejecución aquí para evitar ejecutar la lógica de búsqueda
+            return;
+        }
+
+        // Solo ejecutar esta lógica si NO venimos de productos destacados
+        console.log("Manejando retorno desde búsqueda...");
+
+        // Si no existe el formulario de búsqueda, recrearlo
+        if (!document.getElementById('searchResults')) {
+            console.log("Renderizando formulario de búsqueda...");
+            ProductoView.render("pro-inventario", "search", this.currentLang);
+
+            // Restaurar valores previos del formulario
+            const inputs = [
+                "precioMinCriteria",
+                "precioMaxCriteria",
+                "stockMinCriteria",
+                "stockMaxCriteria",
+                "familiaCriteria",
+                "stockAvailableCriteria",
+                "globalSearch"
+            ];
+
+            inputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input && input.dataset.previousValue) {
+                    if (input.type === 'checkbox') {
+                        input.checked = input.dataset.previousValue === 'true';
+                    } else {
+                        input.value = input.dataset.previousValue;
+                    }
+                }
+            });
+
+            this.setupEvents();
+        }
+
+        // Mostrar resultados anteriores si existen
+        if (this.allResults && this.allResults.length > 0) {
+            console.log("Renderizando página actual de resultados de búsqueda...");
+            this.renderCurrentPage();
+        } else {
+            console.log("Ejecutando nueva búsqueda...");
+            this.handleSearch();
+        }
+    },
+
+    // 3. Nueva función para configurar eventos en detalles de producto
+    setupProductDetailEvents() {
+        const updateForm = document.getElementById("updateProductoForm");
+        if (updateForm && !updateForm.hasListener && App.isEmpleado()) {
+            updateForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                this.handleUpdateProducto(event);
+            });
+            updateForm.hasListener = true;
+        }
+    },
+
+    // 4. Añadir método para refrescar vistas después del login
+    refreshViewsAfterLogin() {
+        console.log("Refrescando vistas después del login...");
+
+        // Si estamos en la página de home, recargar productos destacados
+        const homeContent = document.getElementById("home-content");
+        if (homeContent && !homeContent.classList.contains("hidden")) {
+            this.loadHighlightedProducts();
+            return;
+        }
+
+        // Si estamos en búsqueda de productos, re-renderizar resultados actuales
+        const searchResults = document.getElementById("searchResults");
+        if (searchResults && this.allResults && this.allResults.length > 0) {
+            this.renderCurrentPage();
+            return;
+        }
+
+        // Si estamos viendo detalles de un producto, re-renderizar
+        const currentHash = window.location.hash;
+        const productMatch = currentHash.match(/#producto\/(\d+)/);
+        if (productMatch) {
+            const productId = productMatch[1];
+            this.fetchProductoInfo(productId);
+            return;
+        }
+    },
+
+    // 5. Modificar handleDocumentClick para preservar mejor el contexto
     handleDocumentClick(event) {
         const target = event.target;
 
         if (target.classList.contains("product-link")) {
             const productId = target.getAttribute("data-id");
-            const inputs = document.querySelectorAll('#searchProductosForm input, #searchProductosForm select, #globalSearch');
-            inputs.forEach(input => {
-                input.dataset.previousValue = input.value;
-            });
+            this.productSource = target.getAttribute("data-source");
+
+            // Guardar valores de formulario solo si estamos en búsqueda
+            const searchForm = document.getElementById('searchProductosForm');
+            if (searchForm) {
+                const inputs = document.querySelectorAll('#searchProductosForm input, #searchProductosForm select, #globalSearch');
+                inputs.forEach(input => {
+                    input.dataset.previousValue = input.value;
+                });
+            }
+
             this.fetchProductoInfo(productId);
+            return;
         }
 
         const addToCartButton = target.closest(".btn-add-to-cart");
@@ -128,6 +385,7 @@ const ProductoController = {
             const nombre = addToCartButton.getAttribute("data-nombre");
             const precio = parseFloat(addToCartButton.getAttribute("data-precio")) || 0;
             this.handleAddToCart(productId, nombre, precio);
+            return;
         }
 
         const addToCartBtn = document.getElementById("addToCartBtn");
@@ -136,16 +394,19 @@ const ProductoController = {
             const nombre = addToCartBtn.getAttribute("data-nombre");
             const precio = parseFloat(addToCartBtn.getAttribute("data-precio")) || 0;
             this.handleAddToCart(productId, nombre, precio);
+            return;
         }
 
         if (target.id === "backToResultsBtn") {
             event.preventDefault();
             this.showPreviousResults();
+            return;
         }
 
         if (target.id === "deleteProduct" && App.isEmpleado()) {
             const productId = target.getAttribute("data-id");
             this.handleDeleteProduct(productId);
+            return;
         }
 
         if (target.classList.contains("page-link") || target.parentElement.classList.contains("page-link")) {
@@ -158,6 +419,7 @@ const ProductoController = {
             } else {
                 console.warn(`Página inválida: ${page}`);
             }
+            return;
         }
     },
 
@@ -189,37 +451,6 @@ const ProductoController = {
         } catch (error) {
             console.error("Error al añadir el producto al carrito:", error);
             alert(Translations[this.currentLang].alerts.addToCartError || "Error al añadir el producto al carrito: " + error.message);
-        }
-    },
-
-    showPreviousResults() {
-        const container = document.getElementById("pro-inventario");
-        if (!container) return;
-
-        if (!document.getElementById('searchResults')) {
-            ProductoView.render("pro-inventario", "search", this.currentLang);
-            const inputs = [
-                "precioMinCriteria",
-                "precioMaxCriteria",
-                "stockMinCriteria",
-                "stockMaxCriteria",
-                "familiaCriteria",
-                "stockAvailableCriteria",
-                "globalSearch"
-            ];
-            inputs.forEach(inputId => {
-                const input = document.getElementById(inputId);
-                if (input && input.dataset.previousValue) {
-                    input.value = input.dataset.previousValue;
-                }
-            });
-            this.setupEvents();
-        }
-
-        if (this.allResults && this.allResults.length > 0) {
-            this.renderCurrentPage();
-        } else {
-            this.handleSearch();
         }
     },
 
@@ -283,7 +514,7 @@ const ProductoController = {
             stockMax: parseInt(document.getElementById("stockMaxCriteria")?.value) || null,
             familia: selectedFamilias,
             stockAvailable: document.getElementById("stockAvailableCriteria")?.checked || false,
-            globalSearch: globalSearch // Nuevo campo para la búsqueda global
+            globalSearch: globalSearch
         };
         console.log("Filtros de búsqueda:", filters);
         const normalizedFilters = {
@@ -342,7 +573,6 @@ const ProductoController = {
                     filteredResults = filteredResults.filter(p => p.stockDisponible > 0);
                 }
 
-                // Filtrar por búsqueda global (ID o Nombre)
                 if (filters.globalSearch) {
                     const searchTerm = filters.globalSearch.toLowerCase();
                     filteredResults = filteredResults.filter(p =>
@@ -501,56 +731,6 @@ const ProductoController = {
         }
     },
 
-    async fetchProductoInfo(productId) {
-        try {
-            const producto = await ProductoService.findById(productId);
-            if (!producto) {
-                throw new Error(Translations[this.currentLang].alerts.productNotFound);
-            }
-
-            try {
-                const images = await FileService.getImagesByProductoId(productId);
-                producto.images = images || [];
-            } catch (imageError) {
-                console.warn(`No se pudieron cargar las imágenes para el producto ${productId}:`, imageError);
-                producto.images = [];
-            }
-
-            ProductoView.renderProductoDetails(producto, "pro-inventario", App.isEmpleado(), this.currentLang);
-
-            const updateForm = document.getElementById("updateProductoForm");
-            if (updateForm && !updateForm.hasListener && App.isEmpleado()) {
-                updateForm.addEventListener("submit", (event) => {
-                    event.preventDefault();
-                    this.handleUpdateProducto(event);
-                });
-                updateForm.hasListener = true;
-            }
-        } catch (error) {
-            console.error("Error al obtener la información del producto:", error);
-            alert(Translations[this.currentLang].alerts.loadProductError);
-            this.showPreviousResults();
-        }
-    },
-
-    async handleDeleteProduct(productId) {
-        if (!App.isEmpleado()) {
-            alert(Translations[this.currentLang].alerts.employeeOnlyDelete || "Solo los empleados pueden eliminar productos");
-            return;
-        }
-
-        const confirmDelete = confirm(Translations[this.currentLang].alerts.confirmDelete || "¿Está seguro de que desea eliminar este producto?");
-        if (!confirmDelete) return;
-
-        try {
-            await ProductoService.deleteProducto(productId);
-            alert(Translations[this.currentLang].alerts.productDeleted || "Producto eliminado con éxito");
-            this.showPreviousResults();
-        } catch (error) {
-            console.error("Error al eliminar el producto:", error);
-            alert(Translations[this.currentLang].alerts.deleteProductError + (error.message || ""));
-        }
-    }
 };
 
 export default ProductoController;

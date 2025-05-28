@@ -7,28 +7,30 @@ import DireccionController from './controllers/direccionController.js';
 import FooterController from './controllers/footerController.js';
 import LanguageManager from './resources/languageManager.js';
 
-
 const Router = {
   init() {
     console.log("Router.init()...");
-    // Configurar el evento hashchange para detectar cambios en la URL
     window.addEventListener('hashchange', this.handleRouteChange.bind(this));
-
-    // Comprobar la ruta inicial al cargar la página
-    this.handleRouteChange();
+    // No llamar handleRouteChange aquí, ya se maneja en App.init()
   },
 
   handleRouteChange() {
     const hash = window.location.hash;
     console.log('Hash changed:', hash);
 
-    // Extraer la ruta del hash (p.ej., #/login -> login)
+    // Ignorar cambios de hash que provienen de cambios de idioma
+    if (document.activeElement?.hasAttribute('data-lang')) {
+      console.log("Cambio de hash ignorado: proviene de cambio de idioma");
+      return;
+    }
+
     let route = '';
+
+    // Manejo de rutas con prefijo #/
     if (hash.startsWith('#/')) {
-      route = hash.substring(2).split('?')[0]; // Eliminar parámetros de consulta
+      route = hash.substring(2).split('?')[0];
       console.log('Detected route with prefix:', route);
 
-      // Rutas específicas con prefijo #/
       switch (route) {
         case 'login':
           SesionController.init('login', App.languageManager.currentLang);
@@ -49,11 +51,31 @@ const Router = {
       }
     }
 
-    // Para las rutas sin prefijo #/ (formato antiguo #reset-password)
-    // o rutas no reconocidas con prefijo, procesamos el hash sin el #
+    // Manejo de rutas estándar (sin prefijo #/)
     route = hash.substring(1);
     console.log('Processing standard route:', route);
 
+    // Handle product details route
+    if (route.startsWith('producto/')) {
+      const productId = route.split('/')[1];
+      if (productId) {
+        // Asegurarse de que el contenedor pro-inventario esté listo
+        const proInventario = document.getElementById("pro-inventario");
+        if (proInventario) {
+          proInventario.innerHTML = "";
+          proInventario.classList.remove("hidden");
+        }
+        // Ocultar el contenido de home
+        const homeContent = document.getElementById("home-content");
+        if (homeContent) {
+          homeContent.classList.add("hidden");
+        }
+        ProductoController.fetchProductoInfo(productId);
+        return;
+      }
+    }
+
+    // Switch para otras rutas
     switch (route) {
       case 'cart':
         if (App.cliente && App.isCliente()) {
@@ -115,11 +137,25 @@ const Router = {
         App.showContactContent();
         break;
       case '':
+      case 'home':
         App.showHomeContent();
+        // Limpiar pro-inventario explícitamente
+        const proInventario = document.getElementById("pro-inventario");
+        if (proInventario) {
+          proInventario.innerHTML = "";
+          proInventario.classList.add("hidden");
+          console.log("pro-inventario limpiado en Router.handleRouteChange para home");
+        }
+        ProductoController.init('home', App.languageManager.currentLang);
         break;
       default:
-        // Si no se reconoce la ruta, mostramos la página principal
         App.showHomeContent();
+        if (proInventario) {
+          proInventario.innerHTML = "";
+          proInventario.classList.add("hidden");
+          console.log("pro-inventario limpiado en Router.handleRouteChange para default");
+        }
+        ProductoController.init('home', App.languageManager.currentLang);
         break;
     }
   }
@@ -134,49 +170,33 @@ const App = {
     console.log("App.init()...");
     this.languageManager = new LanguageManager('pt');
     await this.setupSessionState();
+
+    // IMPORTANTE: Inicializar Router ANTES de procesar rutas
+    Router.init();
+
     this.setEvents();
-    this.setupNavigation();
+    // Remover setupNavigation() ya que Router lo maneja
+    // this.setupNavigation();
 
     const hash = window.location.hash;
     console.log("Hash inicial:", hash);
 
-    // Manejar rutas específicas al iniciar la aplicación
-    if (hash.startsWith('#/reset-password')) { // Cambiar de === a startsWith para incluir parámetros
-      SesionController.init('change_password', this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#cart" && this.cliente && this.isCliente()) {
-      await CartController.init(this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#buscar-produtos") {
-      ProductoController.init("search", this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#crear-productos" && this.isEmpleado()) {
-      ProductoController.init("create", this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#buscar-pedidos" && this.cliente && this.isEmpleado()) {
-      PedidoController.init("search", this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#mis-pedidos" && this.cliente) {
-      PedidoController.init("pedidos", this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#mi-perfil") {
-      ClienteController.init("perfil", this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#mis-direcciones") {
-      DireccionController.init(this.languageManager.currentLang);
-      this.hideHomeContent();
-    } else if (hash === "#contact") {
-      this.showContactContent();
-    } else {
-      // Caso por defecto: mostrar la página principal
-      this.showHomeContent();
-    }
+    // Handle initial routes - SIMPLIFICADO
+    this.handleInitialRoute(hash);
 
     this.updateUIForSession();
     FooterController.init(this.languageManager.currentLang);
+  },
 
-    // Inicializar el router después de manejar la ruta inicial
-    Router.init();
+  handleInitialRoute(hash) {
+    // Usar el Router para manejar la ruta inicial
+    if (hash) {
+      Router.handleRouteChange();
+    } else {
+      // Sin hash, mostrar home
+      ProductoController.init('home', this.languageManager.currentLang);
+      this.showHomeContent();
+    }
   },
 
   async setupSessionState() {
@@ -217,194 +237,140 @@ const App = {
       }
     });
 
-    const btnBuscarProdutos = document.querySelector('a[href="#buscar-produtos"]');
-    if (btnBuscarProdutos) {
-      btnBuscarProdutos.addEventListener("click", (e) => {
-        e.preventDefault();
-        ProductoController.init("search", this.languageManager.currentLang);
-        this.hideHomeContent();
-      });
-    }
+    // Event listeners para navigation links
+    this.setupNavigationEvents();
 
-    const btnCrearProducto = document.querySelector('a[href="#crear-productos"]');
-    if (btnCrearProducto) {
-      btnCrearProducto.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (this.isEmpleado()) {
-          ProductoController.init("create", this.languageManager.currentLang);
-          this.hideHomeContent();
-        } else {
-          alert(this.languageManager.getTranslation('alerts.employeeOnlyCreate'));
-        }
-      });
-    }
-
-    const btnBuscarPedidos = document.querySelector('a[href="#buscar-pedidos"]');
-    if (btnBuscarPedidos) {
-      btnBuscarPedidos.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (this.cliente) {
-          if (this.isEmpleado()) {
-            PedidoController.init("search", this.languageManager.currentLang);
-            this.hideHomeContent();
-          } else {
-            alert(this.languageManager.getTranslation('alerts.employeeOnlyOrders'));
-          }
-        } else {
-          alert(this.languageManager.getTranslation('alerts.loginEmployee'));
-        }
-      });
-    }
-
-    const btnMyProfile = document.querySelector('a[href="#mi-perfil"]');
-    if (btnMyProfile) {
-      btnMyProfile.addEventListener("click", (e) => {
-        e.preventDefault();
-        ClienteController.init("perfil", this.languageManager.currentLang);
-        this.hideHomeContent();
-      });
-    }
-
-    const btnDirecciones = document.querySelector('a[href="#mis-direcciones"]');
-    if (btnDirecciones) {
-      btnDirecciones.addEventListener("click", (e) => {
-        e.preventDefault();
-        DireccionController.init(this.languageManager.currentLang);
-        this.hideHomeContent();
-      });
-    }
-
-    const btnPedidos = document.querySelector('a[href="#mis-pedidos"]');
-    if (btnPedidos) {
-      btnPedidos.addEventListener("click", (e) => {
-        e.preventDefault();
-        PedidoController.init("pedidos", this.languageManager.currentLang);
-        this.hideHomeContent();
-      });
-    }
-
-    const btnCart = document.querySelector('a[href="#cart"]');
-    if (btnCart) {
-      btnCart.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (this.cliente) {
-          if (this.isCliente()) {
-            CartController.init(this.languageManager.currentLang);
-            this.hideHomeContent();
-          } else {
-            alert(this.languageManager.getTranslation('alerts.clientOnlyCart'));
-          }
-        } else {
-          alert(this.languageManager.getTranslation('alerts.loginCart'));
-        }
-      });
-    }
-
-    // New event listeners for Contact and Services
-    const btnContact = document.querySelector('a[href="#contact"]');
-    if (btnContact) {
-      btnContact.addEventListener("click", (e) => {
-        e.preventDefault();
-        FooterController.showContactPage();
-        this.hideHomeContent();
-      });
-    }
-
-    const btnServices = document.querySelector('a[href="#services"]');
-    if (btnServices) {
-      btnServices.addEventListener("click", (e) => {
-        e.preventDefault();
-        FooterController.showServicesPage();
-        this.hideHomeContent();
-      });
-    }
-
+    // Event listener para cambios de idioma
     document.addEventListener('languageChange', (e) => {
       const { lang, currentHash } = e.detail;
       console.log(`Actualizando UI para idioma: ${lang}, hash: ${currentHash}`);
-
-      if (currentHash === "#cart" && CartController.updateTranslations) {
-        CartController.updateTranslations(lang);
-      } else if (currentHash === "#buscar-produtos") {
-        ProductoController.updateTranslations(lang);
-      } else if (currentHash === "#crear-productos" && this.isEmpleado()) {
-        ProductoController.updateTranslations(lang);
-      } else if (currentHash === "#buscar-pedidos" && this.isEmpleado()) {
-        PedidoController.updateTranslations(lang);
-      } else if (currentHash === "#mis-pedidos") {
-        PedidoController.updateTranslations(lang);
-      } else if (currentHash === "#mi-perfil") {
-        ClienteController.updateTranslations(lang);
-      } else if (currentHash === "#mis-direcciones") {
-        DireccionController.updateTranslations(lang);
-      } else if (currentHash === "#contact") {
-        this.showContactContent();
-      } else if (currentHash === "#services") {
-        this.showServicesContent();
-      } else {
-        this.updateUIForSession();
-      }
-
-      FooterController.init(lang);
+      this.handleLanguageChange(lang, currentHash);
     });
   },
 
-  setupNavigation() {
-    window.addEventListener("hashchange", () => {
-      if (document.activeElement?.hasAttribute('data-lang')) {
-        console.log("Cambio de hash ignorado: proviene de cambio de idioma");
-        return;
-      }
+  setupNavigationEvents() {
+    const navLinks = [
+      { selector: 'a[href="#buscar-produtos"]', action: () => this.navigateToSearch() },
+      { selector: 'a[href="#crear-productos"]', action: () => this.navigateToCreate() },
+      { selector: 'a[href="#buscar-pedidos"]', action: () => this.navigateToSearchOrders() },
+      { selector: 'a[href="#mi-perfil"]', action: () => this.navigateToProfile() },
+      { selector: 'a[href="#mis-direcciones"]', action: () => this.navigateToAddresses() },
+      { selector: 'a[href="#mis-pedidos"]', action: () => this.navigateToOrders() },
+      { selector: 'a[href="#cart"]', action: () => this.navigateToCart() },
+      { selector: 'a[href="#contact"]', action: () => this.navigateToContact() },
+      { selector: 'a[href="#services"]', action: () => this.navigateToServices() }
+    ];
 
-      const hash = window.location.hash;
-      console.log("Hash cambiado:", hash);
-
-      if (hash === "" || hash === "#") {
-        this.showHomeContent();
-      } else if (hash === "#cart" && this.cliente && this.isCliente()) {
-        CartController.init(this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#buscar-pedidos" && this.cliente && this.isEmpleado()) {
-        PedidoController.init("search", this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#mis-pedidos" && this.cliente) {
-        PedidoController.init("pedidos", this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#buscar-produtos") {
-        ProductoController.init("search", this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#crear-productos" && this.isEmpleado()) {
-        ProductoController.init("create", this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#mi-perfil") {
-        ClienteController.init("perfil", this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#mis-direcciones") {
-        DireccionController.init(this.languageManager.currentLang);
-        this.hideHomeContent();
-      } else if (hash === "#contact") {
-        this.showContactContent();
-      } else if (hash === "#services") {
-        this.showServicesContent();
-      } else {
-        this.showHomeContent();
+    navLinks.forEach(({ selector, action }) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        element.addEventListener("click", (e) => {
+          e.preventDefault();
+          action();
+        });
       }
     });
   },
 
-  async showHomeContent() {
+  // Métodos de navegación simplificados
+  navigateToSearch() {
+    window.location.hash = '#buscar-produtos';
+  },
+
+  navigateToCreate() {
+    if (this.isEmpleado()) {
+      window.location.hash = '#crear-productos';
+    } else {
+      alert(this.languageManager.getTranslation('alerts.employeeOnlyCreate'));
+    }
+  },
+
+  navigateToSearchOrders() {
+    if (this.cliente) {
+      if (this.isEmpleado()) {
+        window.location.hash = '#buscar-pedidos';
+      } else {
+        alert(this.languageManager.getTranslation('alerts.employeeOnlyOrders'));
+      }
+    } else {
+      alert(this.languageManager.getTranslation('alerts.loginEmployee'));
+    }
+  },
+
+  navigateToProfile() {
+    window.location.hash = '#mi-perfil';
+  },
+
+  navigateToAddresses() {
+    window.location.hash = '#mis-direcciones';
+  },
+
+  navigateToOrders() {
+    window.location.hash = '#mis-pedidos';
+  },
+
+  navigateToCart() {
+    if (this.cliente) {
+      if (this.isCliente()) {
+        window.location.hash = '#cart';
+      } else {
+        alert(this.languageManager.getTranslation('alerts.clientOnlyCart'));
+      }
+    } else {
+      alert(this.languageManager.getTranslation('alerts.loginCart'));
+    }
+  },
+
+  navigateToContact() {
+    window.location.hash = '#contact';
+  },
+
+  navigateToServices() {
+    window.location.hash = '#services';
+  },
+
+  handleLanguageChange(lang, currentHash) {
+    if (currentHash === "#cart" && CartController.updateTranslations) {
+      CartController.updateTranslations(lang);
+    } else if (currentHash === "#buscar-produtos") {
+      ProductoController.updateTranslations(lang);
+    } else if (currentHash === "#crear-productos" && this.isEmpleado()) {
+      ProductoController.updateTranslations(lang);
+    } else if (currentHash === "#buscar-pedidos" && this.isEmpleado()) {
+      PedidoController.updateTranslations(lang);
+    } else if (currentHash === "#mis-pedidos") {
+      PedidoController.updateTranslations(lang);
+    } else if (currentHash === "#mi-perfil") {
+      ClienteController.updateTranslations(lang);
+    } else if (currentHash === "#mis-direcciones") {
+      DireccionController.updateTranslations(lang);
+    } else if (currentHash === "#contact") {
+      this.showContactContent();
+    } else if (currentHash === "#services") {
+      this.showServicesContent();
+    } else {
+      this.updateUIForSession();
+    }
+
+    FooterController.init(lang);
+  },
+
+  showHomeContent() {
     console.log("Mostrando contenido home...");
     const homeContent = document.getElementById("home-content");
     const proInventario = document.getElementById("pro-inventario");
 
     if (homeContent && proInventario) {
-      homeContent.style.display = "block";
-      proInventario.style.display = "none";
+      homeContent.classList.remove("hidden");
       proInventario.innerHTML = "";
+      proInventario.classList.add("hidden");
+      console.log("pro-inventario limpiado y oculto");
+    } else {
+      console.error("Contenedores no encontrados:", { homeContent, proInventario });
     }
 
     this.updateUIForSession();
-    window.location.hash = "";
+    window.location.hash = "#home"; // Asegurar que el hash sea consistente
   },
 
   hideHomeContent() {
@@ -413,11 +379,10 @@ const App = {
     const proInventario = document.getElementById("pro-inventario");
 
     if (homeContent && proInventario) {
-      homeContent.style.display = "none";
-      proInventario.style.display = "block";
+      homeContent.classList.add("hidden");
+      proInventario.classList.remove("hidden");
     }
   },
-
 
   updateUIForSession() {
     console.log("Actualizando UI según estado de sesión...");
@@ -459,24 +424,24 @@ const App = {
 
     if (this.cliente) {
       sessionButtons.innerHTML = `
-                <div class="alert alert-success mb-3">
-                    ${this.languageManager.getTranslation('session.welcome')}, ${this.cliente.nombre}! (${this.isCliente() ? this.languageManager.getTranslation('session.client') : this.languageManager.getTranslation('session.employee')})
-                </div>
-                <button id="logoutBtn" class="btn btn-danger" data-i18n="session.logout">
-                    <i class="fas fa-sign-out-alt me-2"></i>${this.languageManager.getTranslation('session.logout')}
-                </button>
-            `;
+        <div class="alert alert-success mb-3">
+          ${this.languageManager.getTranslation('session.welcome')}, ${this.cliente.nombre}! (${this.isCliente() ? this.languageManager.getTranslation('session.client') : this.languageManager.getTranslation('session.employee')})
+        </div>
+        <button id="logoutBtn" class="btn btn-danger" data-i18n="session.logout">
+          <i class="fas fa-sign-out-alt me-2"></i>${this.languageManager.getTranslation('session.logout')}
+        </button>
+      `;
     } else {
       sessionButtons.innerHTML = `
-                <div class="d-grid gap-3">
-                    <a href="#login" class="btn btn-primary home-login-btn" data-i18n="session.login">
-                        <i class="fas fa-sign-in-alt me-2"></i>${this.languageManager.getTranslation('session.login')}
-                    </a>
-                    <a href="#register" class="btn btn-success home-register-btn" data-i18n="session.register">
-                        <i class="fas fa-user-plus me-2"></i>${this.languageManager.getTranslation('session.register')}
-                    </a>
-                </div>
-            `;
+        <div class="d-grid gap-3">
+          <a href="#login" class="btn btn-primary home-login-btn" data-i18n="session.login">
+            <i class="fas fa-sign-in-alt me-2"></i>${this.languageManager.getTranslation('session.login')}
+          </a>
+          <a href="#register" class="btn btn-success home-register-btn" data-i18n="session.register">
+            <i class="fas fa-user-plus me-2"></i>${this.languageManager.getTranslation('session.register')}
+          </a>
+        </div>
+      `;
     }
   },
 
@@ -484,7 +449,6 @@ const App = {
     console.log("Cerrando sesión...");
     sessionStorage.removeItem("cliente");
     this.cliente = null;
-
     this.updateUIForSession();
     this.showHomeContent();
   },
@@ -493,19 +457,18 @@ const App = {
     console.log("Login exitoso, actualizando aplicación...", clienteData);
     this.cliente = clienteData;
     sessionStorage.setItem("cliente", JSON.stringify(clienteData));
-
     this.updateUIForSession();
 
     const sessionButtons = document.getElementById("session-buttons");
     if (sessionButtons) {
       sessionButtons.innerHTML = `
-                <div class="alert alert-success mb-3">
-                    ${this.languageManager.getTranslation('session.welcome')} ${clienteData.nombre}! (${this.isCliente() ? this.languageManager.getTranslation('session.client') : this.languageManager.getTranslation('session.employee')})
-                </div>
-                <button id="logoutBtn" class="btn btn-danger" data-i18n="session.logout">
-                    <i class="fas fa-sign-out-alt me-2"></i>${this.languageManager.getTranslation('session.logout')}
-                </button>
-            `;
+        <div class="alert alert-success mb-3">
+          ${this.languageManager.getTranslation('session.welcome')} ${clienteData.nombre}! (${this.isCliente() ? this.languageManager.getTranslation('session.client') : this.languageManager.getTranslation('session.employee')})
+        </div>
+        <button id="logoutBtn" class="btn btn-danger" data-i18n="session.logout">
+          <i class="fas fa-sign-out-alt me-2"></i>${this.languageManager.getTranslation('session.logout')}
+        </button>
+      `;
     }
   },
 

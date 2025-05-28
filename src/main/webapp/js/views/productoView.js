@@ -48,14 +48,7 @@ const ProductoView = {
                                                 <input type="number" step="0.01" id="precioMaxCriteria" class="form-control" placeholder="${t.priceMaxPlaceholder}">
                                             </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="stockMin" class="form-label" data-i18n="productos.search.stockMin">${t.stockMin}</label>
-                                            <input type="number" id="stockMinCriteria" class="form-control" placeholder="${t.stockMinPlaceholder}">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="stockMax" class="form-label" data-i18n="productos.search.stockMax">${t.stockMax}</label>
-                                            <input type="number" id="stockMaxCriteria" class="form-control" placeholder="${t.stockMaxPlaceholder}">
-                                        </div>
+                                        
                                         <div class="form-group">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="stockAvailableCriteria" name="stockAvailable" checked>
@@ -185,29 +178,24 @@ const ProductoView = {
         }
     },
 
-    // En ProductoView.js, corrige la función renderResults
+    // En ProductoView.js, modifica el método renderResults para forzar re-evaluación del estado de login:
 
     renderResults(productos, containerId = "pro-inventario", currentPage = 1, itemsPerPage = 30, totalItems = 0, lang = 'pt') {
         console.log(`ProductoView.renderResults called with ${productos.length} products, page: ${currentPage}, totalItems: ${totalItems}`);
 
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`No se encontró el contenedor con ID: ${containerId}`);
+        let resultsContainer;
+        if (containerId === "highlighted-products") {
+            resultsContainer = document.getElementById(containerId);
+        } else {
+            resultsContainer = document.getElementById("searchResults");
+        }
+
+        if (!resultsContainer) {
+            console.error(`No se encontró el contenedor de resultados con ID: ${containerId === "highlighted-products" ? containerId : "searchResults"}`);
             return;
         }
 
         const t = Translations[lang].productos.results;
-
-        if (!document.getElementById('searchResults')) {
-            console.log("searchResults no existe, renderizando formulario de búsqueda");
-            container.innerHTML = this.getSearchForm(lang);
-        }
-
-        const resultsContainer = document.getElementById('searchResults');
-        if (!resultsContainer) {
-            console.error("No se encontró el contenedor de resultados con ID: searchResults");
-            return;
-        }
 
         console.log("Productos a renderizar:", productos);
 
@@ -220,7 +208,10 @@ const ProductoView = {
             return;
         }
 
+        // CORRECCIÓN: Re-evaluar el estado de login en tiempo de renderizado
         const isLoggedIn = App.cliente !== null;
+        console.log("Estado de login al renderizar:", isLoggedIn);
+
         let resultsHtml = '<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
 
         productos.forEach((producto, index) => {
@@ -229,6 +220,7 @@ const ProductoView = {
             const nombre = producto.nombre || 'N/A';
             const precio = producto.precio ? Number(producto.precio).toFixed(2) + ' €' : 'N/A';
             const stockDisponible = producto.stockDisponible || 0;
+            const source = containerId === "highlighted-products" ? "highlighted" : "search";
 
             resultsHtml += `
         <div class="col">
@@ -257,7 +249,7 @@ const ProductoView = {
                         <div class="product-price text-muted" data-i18n="productos.results.loginPrice">${t.loginPrice}</div>
                     `}
                     <div class="product-actions">
-                        <button class="btn btn-view-details product-link" data-id="${producto.id || ''}" data-i18n="productos.results.viewDetailsBtn">
+                        <button class="btn btn-view-details product-link" data-id="${producto.id || ''}" data-source="${source}" data-i18n="productos.results.viewDetailsBtn">
                             <i class="bi bi-eye me-1"></i>${t.viewDetailsBtn}
                         </button>
                         ${isLoggedIn ? `

@@ -41,6 +41,8 @@ export default class ProductoDTO {
       obj = obj || new ProductoDTO();
       if (data.hasOwnProperty('familia'))
         obj.familia = ApiClient.convertToType(data['familia'], 'String');
+      if (data.hasOwnProperty('destaques'))
+        obj.destaques = ApiClient.convertToType(data['destaques'], 'Boolean');
       if (data.hasOwnProperty('familiaNombre'))
         obj.familiaNombre = ApiClient.convertToType(data['familiaNombre'], 'String');
       if (data.hasOwnProperty('id'))
@@ -60,6 +62,11 @@ export default class ProductoDTO {
  * @member {String} familia
  */
 ProductoDTO.prototype.familia = undefined;
+
+/**
+ * @member {Boolean} destaques
+ */
+ProductoDTO.prototype.destaques = undefined;
 
 /**
  * @member {String} familiaNombre
