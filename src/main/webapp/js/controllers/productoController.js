@@ -266,10 +266,10 @@ const ProductoController = {
             }
 
             // Actualizar la URL sin recargar
-            window.location.hash = "#home";
+            window.location.hash = '#login';
 
             // Resetear el estado del producto
-            this.productSource = null;
+            // this.productSource = null;
 
             // Detener ejecución aquí para evitar ejecutar la lógica de búsqueda
             return;
@@ -330,13 +330,19 @@ const ProductoController = {
         }
     },
 
-    // 4. Añadir método para refrescar vistas después del login
     refreshViewsAfterLogin() {
         console.log("Refrescando vistas después del login...");
+
+        // Verificar el estado de App.cliente
+        if (!App.cliente && !App.empleado) {
+            console.warn("No se encontró App.cliente ni App.empleado, no se puede refrescar las vistas.");
+            return;
+        }
 
         // Si estamos en la página de home, recargar productos destacados
         const homeContent = document.getElementById("home-content");
         if (homeContent && !homeContent.classList.contains("hidden")) {
+            console.log("Recargando productos destacados en home...");
             this.loadHighlightedProducts();
             return;
         }
@@ -344,6 +350,7 @@ const ProductoController = {
         // Si estamos en búsqueda de productos, re-renderizar resultados actuales
         const searchResults = document.getElementById("searchResults");
         if (searchResults && this.allResults && this.allResults.length > 0) {
+            console.log("Re-renderizando resultados de búsqueda...");
             this.renderCurrentPage();
             return;
         }
@@ -352,82 +359,107 @@ const ProductoController = {
         const currentHash = window.location.hash;
         const productMatch = currentHash.match(/#producto\/(\d+)/);
         if (productMatch) {
+            console.log("Re-renderizando detalles del producto...");
             const productId = productMatch[1];
             this.fetchProductoInfo(productId);
             return;
         }
+
+        // Si no estamos en ninguna de las anteriores, recargar la página de inicio
+        console.log("Ningún contexto específico detectado, recargando home...");
+        this.init("home", this.currentLang);
     },
 
-    // 5. Modificar handleDocumentClick para preservar mejor el contexto
     handleDocumentClick(event) {
-        const target = event.target;
+    const target = event.target;
 
-        if (target.classList.contains("product-link")) {
-            const productId = target.getAttribute("data-id");
-            this.productSource = target.getAttribute("data-source");
+    if (target.classList.contains("product-link")) {
+        const productId = target.getAttribute("data-id");
+        this.productSource = target.getAttribute("data-source");
 
-            // Guardar valores de formulario solo si estamos en búsqueda
-            const searchForm = document.getElementById('searchProductosForm');
-            if (searchForm) {
-                const inputs = document.querySelectorAll('#searchProductosForm input, #searchProductosForm select, #globalSearch');
-                inputs.forEach(input => {
-                    input.dataset.previousValue = input.value;
-                });
-            }
+        // Guardar valores de formulario solo si estamos en búsqueda
+        const searchForm = document.getElementById('searchProductosForm');
+        if (searchForm) {
+            const inputs = document.querySelectorAll('#searchProductosForm input, #searchProductosForm select, #globalSearch');
+            inputs.forEach(input => {
+                input.dataset.previousValue = input.value;
+            });
+        }
 
-            this.fetchProductoInfo(productId);
+        this.fetchProductoInfo(productId);
+        return;
+    }
+
+    const addToCartButton = target.closest(".btn-add-to-cart");
+    if (addToCartButton) {
+        const productId = addToCartButton.getAttribute("data-id");
+        const nombre = addToCartButton.getAttribute("data-nombre");
+        const precio = parseFloat(addToCartButton.getAttribute("data-precio")) || 0;
+
+        // Verificar si el usuario está autenticado
+        if (!App.cliente && !App.empleado) {
+            console.log("Usuario no logueado, redirigiendo al login...");
+            alert(Translations[this.currentLang].alerts.loginRequired || "Por favor, inicia sesión para añadir productos al carrito");
+            window.location.hash = '#login';
             return;
         }
 
-        const addToCartButton = target.closest(".btn-add-to-cart");
-        if (addToCartButton) {
-            const productId = addToCartButton.getAttribute("data-id");
-            const nombre = addToCartButton.getAttribute("data-nombre");
-            const precio = parseFloat(addToCartButton.getAttribute("data-precio")) || 0;
-            this.handleAddToCart(productId, nombre, precio);
+        this.handleAddToCart(productId, nombre, precio);
+        return;
+    }
+
+    const addToCartBtn = document.getElementById("addToCartBtn");
+    if (addToCartBtn && addToCartBtn.contains(target)) {
+        const productId = addToCartBtn.getAttribute("data-id");
+        const nombre = addToCartBtn.getAttribute("data-nombre");
+        const precio = parseFloat(addToCartBtn.getAttribute("data-precio")) || 0;
+
+        // Verificar si el usuario está autenticado
+        if (!App.cliente && !App.empleado) {
+            console.log("Usuario no logueado, redirigiendo al login...");
+            alert(Translations[this.currentLang].alerts.loginRequired || "Por favor, inicia sesión para añadir productos al carrito");
+            window.location.hash = '#login';
             return;
         }
 
-        const addToCartBtn = document.getElementById("addToCartBtn");
-        if (addToCartBtn && addToCartBtn.contains(target)) {
-            const productId = addToCartBtn.getAttribute("data-id");
-            const nombre = addToCartBtn.getAttribute("data-nombre");
-            const precio = parseFloat(addToCartBtn.getAttribute("data-precio")) || 0;
-            this.handleAddToCart(productId, nombre, precio);
-            return;
-        }
+        this.handleAddToCart(productId, nombre, precio);
+        return;
+    }
 
-        if (target.id === "backToResultsBtn") {
-            event.preventDefault();
-            this.showPreviousResults();
-            return;
-        }
+    if (target.id === "backToResultsBtn") {
+        event.preventDefault();
+        this.showPreviousResults();
+        return;
+    }
 
-        if (target.id === "deleteProduct" && App.isEmpleado()) {
-            const productId = target.getAttribute("data-id");
-            this.handleDeleteProduct(productId);
-            return;
-        }
+    if (target.id === "deleteProduct" && App.isEmpleado()) {
+        const productId = target.getAttribute("data-id");
+        this.handleDeleteProduct(productId);
+        return;
+    }
 
-        if (target.classList.contains("page-link") || target.parentElement.classList.contains("page-link")) {
-            event.preventDefault();
-            const pageElement = target.classList.contains("page-link") ? target : target.parentElement;
-            const page = parseInt(pageElement.dataset.page);
-            console.log(`Clic en enlace de página: ${page}, Total páginas: ${this.totalPages}`);
-            if (!isNaN(page) && page > 0 && page <= this.totalPages) {
-                this.goToPage(page);
-            } else {
-                console.warn(`Página inválida: ${page}`);
-            }
-            return;
+    if (target.classList.contains("page-link") || target.parentElement.classList.contains("page-link")) {
+        event.preventDefault();
+        const pageElement = target.classList.contains("page-link") ? target : target.parentElement;
+        const page = parseInt(pageElement.dataset.page);
+        console.log(`Clic en enlace de página: ${page}, Total páginas: ${this.totalPages}`);
+        if (!isNaN(page) && page > 0 && page <= this.totalPages) {
+            this.goToPage(page);
+        } else {
+            console.warn(`Página inválida: ${page}`);
         }
-    },
+        return;
+    }
+},
 
     async handleAddToCart(productId, nombre, precio) {
         console.log(`ProductoController.handleAddToCart(productId: ${productId}, nombre: ${nombre}, precio: ${precio})...`);
 
+        // Verificar si el usuario está logueado
         if (!App.cliente) {
             console.log("Usuario no logueado, redirigiendo al login...");
+            // Mostrar mensaje opcional antes de redirigir
+            alert(Translations[this.currentLang].alerts.loginRequired || "Por favor, inicia sesión para añadir productos al carrito");
             window.location.hash = '#login';
             return;
         }

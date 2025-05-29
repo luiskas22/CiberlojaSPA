@@ -254,14 +254,14 @@ const ProductoView = {
                         </button>
                         ${isLoggedIn ? `
                             <button class="btn btn-success btn-add-to-cart" 
-                                    data-id="${producto.id || ''}" 
-                                    data-nombre="${nombre}" 
-                                    data-precio="${producto.precio || 0}"
-                                    data-stock-disponible="${stockDisponible}"
-                                    ${stockDisponible <= 0 ? 'disabled' : ''} 
-                                    aria-label="${t.addToCartBtn || 'Añadir al Carrito'}">
-                                <i class="bi bi-cart-plus fs-5"></i>
-                            </button>
+                        data-id="${producto.id || ''}" 
+                        data-nombre="${nombre}" 
+                        data-precio="${producto.precio || 0}"
+                        data-stock-disponible="${stockDisponible}"
+                        ${stockDisponible <= 0 ? 'disabled' : ''} 
+                        aria-label="${t.addToCartBtn || 'Añadir al Carrito'}">
+                        <i class="bi bi-cart-plus fs-5"></i>
+                    </button>
                         ` : ''}
                     </div>
                 </div>
@@ -367,15 +367,15 @@ const ProductoView = {
                     <i class="bi bi-arrow-left me-2"></i>${t.backBtn}
                 </button>
                 ${isLoggedIn ? `
-                    <button type="button" id="addToCartBtn" class="btn btn-success" 
-                            data-id="${producto.id || ''}" 
-                            data-nombre="${nombre}" 
-                            data-precio="${producto.precio || 0}"
-                            data-stock-disponible="${stockDisponible}"
-                            ${stockDisponible <= 0 ? 'disabled' : ''} 
-                            data-i18n="productos.details.addToCartBtn">
-                        <i class="bi bi-cart-plus me-2"></i>${t.addToCartBtn}
-                    </button>
+                     <button type="button" id="addToCartBtn" class="btn btn-success" 
+                    data-id="${producto.id || ''}" 
+                    data-nombre="${nombre}" 
+                    data-precio="${producto.precio || 0}"
+                    data-stock-disponible="${stockDisponible}"
+                    ${stockDisponible <= 0 ? 'disabled' : ''} 
+                    data-i18n="productos.details.addToCartBtn">
+                    <i class="bi bi-cart-plus me-2"></i>${t.addToCartBtn}
+                </button>
                 ` : ''}
             </div>
         `;

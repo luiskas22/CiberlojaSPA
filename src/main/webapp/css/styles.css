@@ -244,16 +244,17 @@ main {
 }
 
 .btn-danger {
-	background-color: #f74343;
-	border-color: var(--danger-color);
+	color: white;
+	background-color: #003995;
+	border-color: #1c1c1c;
 	border-radius: 50px;
 }
 
 .btn-danger:hover {
-	background-color: #e60048;
-	border-color: #e60048;
+	background-color: #003995;
+	border-color: #1c1c1c;
 	transform: translateY(-2px);
-	box-shadow: 0 4px 8px rgba(255, 0, 84, 0.25);
+	box-shadow: 0 4px 8px rgba(11, 157, 255, 0.25);
 }
 
 .btn-success {
@@ -2627,5 +2628,11 @@ label {
 }
 
 .hidden {
-    display: none !important;
+	display: none !important;
+}
+
+.form-empleado{
+	font-size: 15px;
+	color: black;
+	font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }

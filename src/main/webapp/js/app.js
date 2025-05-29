@@ -6,6 +6,9 @@ import CartController from './controllers/cartController.js';
 import DireccionController from './controllers/direccionController.js';
 import FooterController from './controllers/footerController.js';
 import LanguageManager from './resources/languageManager.js';
+import EmpleadoController from './controllers/empleadoController.js';
+
+// Suponiendo que hay un EmpleadoController para manejar la creación de empleados
 
 const Router = {
   init() {
@@ -59,13 +62,11 @@ const Router = {
     if (route.startsWith('producto/')) {
       const productId = route.split('/')[1];
       if (productId) {
-        // Asegurarse de que el contenedor pro-inventario esté listo
         const proInventario = document.getElementById("pro-inventario");
         if (proInventario) {
           proInventario.innerHTML = "";
           proInventario.classList.remove("hidden");
         }
-        // Ocultar el contenido de home
         const homeContent = document.getElementById("home-content");
         if (homeContent) {
           homeContent.classList.add("hidden");
@@ -93,6 +94,14 @@ const Router = {
       case 'crear-productos':
         if (App.isEmpleado()) {
           ProductoController.init("create", App.languageManager.currentLang);
+          App.hideHomeContent();
+        } else {
+          App.showHomeContent();
+        }
+        break;
+      case 'crear-empleados':
+        if (App.isEmpleado()) {
+          EmpleadoController.init("create", App.languageManager.currentLang); // Nueva ruta para empleados
           App.hideHomeContent();
         } else {
           App.showHomeContent();
@@ -139,7 +148,6 @@ const Router = {
       case '':
       case 'home':
         App.showHomeContent();
-        // Limpiar pro-inventario explícitamente
         const proInventario = document.getElementById("pro-inventario");
         if (proInventario) {
           proInventario.innerHTML = "";
@@ -253,6 +261,7 @@ const App = {
       { selector: 'a[href="#buscar-produtos"]', action: () => this.navigateToSearch() },
       { selector: 'a[href="#crear-productos"]', action: () => this.navigateToCreate() },
       { selector: 'a[href="#buscar-pedidos"]', action: () => this.navigateToSearchOrders() },
+      { selector: 'a[href="#crear-empleados"]', action: () => this.navigateToAddEmployees() }, // Nuevo enlace
       { selector: 'a[href="#mi-perfil"]', action: () => this.navigateToProfile() },
       { selector: 'a[href="#mis-direcciones"]', action: () => this.navigateToAddresses() },
       { selector: 'a[href="#mis-pedidos"]', action: () => this.navigateToOrders() },
@@ -280,6 +289,14 @@ const App = {
   navigateToCreate() {
     if (this.isEmpleado()) {
       window.location.hash = '#crear-productos';
+    } else {
+      alert(this.languageManager.getTranslation('alerts.employeeOnlyCreate'));
+    }
+  },
+
+  navigateToAddEmployees() { // Nuevo método
+    if (this.isEmpleado()) {
+      window.location.hash = '#crear-empleados';
     } else {
       alert(this.languageManager.getTranslation('alerts.employeeOnlyCreate'));
     }
@@ -336,6 +353,8 @@ const App = {
       ProductoController.updateTranslations(lang);
     } else if (currentHash === "#crear-productos" && this.isEmpleado()) {
       ProductoController.updateTranslations(lang);
+    } else if (currentHash === "#crear-empleados" && this.isEmpleado()) { // Nueva ruta
+      EmpleadoController.updateTranslations(lang);
     } else if (currentHash === "#buscar-pedidos" && this.isEmpleado()) {
       PedidoController.updateTranslations(lang);
     } else if (currentHash === "#mis-pedidos") {
@@ -396,6 +415,7 @@ const App = {
     const btnCrearProducto = document.querySelector('a[href="#crear-productos"]');
     const btnCart = document.querySelector('a[href="#cart"]');
     const btnBuscarPedidos = document.querySelector('a[href="#buscar-pedidos"]');
+    const btnCrearEmpleados = document.querySelector('a[href="#crear-empleados"]'); // Nuevo botón
 
     if (!accountDropdown) return;
 
@@ -410,11 +430,15 @@ const App = {
       if (btnBuscarPedidos) {
         btnBuscarPedidos.style.display = this.isEmpleado() ? "block" : "none";
       }
+      if (btnCrearEmpleados) { // Controlar visibilidad del nuevo enlace
+        btnCrearEmpleados.style.display = this.isEmpleado() ? "block" : "none";
+      }
     } else {
       accountDropdown.style.display = "none";
       if (btnCrearProducto) btnCrearProducto.style.display = "none";
       if (btnCart) btnCart.style.display = "none";
       if (btnBuscarPedidos) btnBuscarPedidos.style.display = "none";
+      if (btnCrearEmpleados) btnCrearEmpleados.style.display = "none"; // Ocultar si no está logueado
     }
   },
 

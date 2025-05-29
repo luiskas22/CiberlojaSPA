@@ -2,7 +2,7 @@ import SessionView from "../views/sessionView.js";
 import SessionService from "../services/sessionService.js";
 import App from "../app.js";
 import Translations from '../resources/translations.js';
-
+import ProductoController from "./productoController.js";
 const SesionController = {
     // Modificación del método init en SesionController
     init(action, lang = 'pt') {
@@ -204,6 +204,7 @@ const SesionController = {
 
                 sessionStorage.setItem("empleado", JSON.stringify(response));
                 sessionStorage.removeItem("cliente");
+                App.empleado = response; // Actualizar App.empleado
             } else if (emailOrId.includes("@")) {
                 const credentials = { username: emailOrId, password };
                 console.log("Credenciais de cliente a enviar:", credentials);
@@ -222,6 +223,7 @@ const SesionController = {
 
                 sessionStorage.setItem("cliente", JSON.stringify(response));
                 sessionStorage.removeItem("empleado");
+                App.cliente = response; // Actualizar App.cliente
             } else {
                 throw new Error(Translations[this.currentLang].alerts.invalid_email_or_id || "Por favor, insira um email válido ou um ID numérico.");
             }
@@ -231,8 +233,14 @@ const SesionController = {
                 : Translations[this.currentLang].alerts.client_login_success || "Login bem-sucedido! Bem-vindo, cliente.";
             SessionView.renderLoginSuccess(welcomeMessage, this.currentLang);
 
+            // Llamar a App.onLoginSuccess para manejar el login
             App.onLoginSuccess(response);
 
+            // Refrescar vistas de productos para reflejar el estado autenticado
+            console.log("Refrescando vistas después del login...");
+            ProductoController.refreshViewsAfterLogin();
+
+            // Redirigir al home después de un breve retraso
             setTimeout(() => {
                 App.showHomeContent();
             }, 1500);
