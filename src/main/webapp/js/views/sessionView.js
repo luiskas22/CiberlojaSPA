@@ -15,12 +15,12 @@ const SessionView = {
             <form id="loginForm" class="bg-light p-4 rounded shadow-sm">
                 <div class="row g-3">
                     <div class="col-md-12">
-                        <label for="loginEmail" class="form-label" data-i18n="session.email">${t.email || 'Email ou ID'}</label>
+                        <label for="loginEmail" class="form-login" data-i18n="session.email">${t.email || 'Email ou ID'}</label>
                         <input type="text" id="loginEmail" class="form-control" 
                                placeholder="${t.email_placeholder || 'Insira o seu email ou ID'}" required>
                     </div>
                     <div class="col-md-12">
-                        <label for="loginPassword" class="form-label" data-i18n="session.password">${t.password || 'Palavra-passe'}</label>
+                        <label for="loginPassword" class="form-login" data-i18n="session.password">${t.password || 'Palavra-passe'}</label>
                         <input type="password" id="loginPassword" class="form-control" 
                                placeholder="${t.password_placeholder || 'Insira a sua palavra-passe'}" required>
                     </div>

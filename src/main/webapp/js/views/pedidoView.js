@@ -1,5 +1,6 @@
 import Translations from '../resources/translations.js';
-import FileService from '../services/fileService.js'; // Add this import if keeping getProductImageSrc
+import FileService from '../services/fileService.js';
+
 const PedidoView = {
     getPedidosView(pedidos, lang = 'pt') {
         let t = {};
@@ -22,6 +23,11 @@ const PedidoView = {
                                         <div class="order-details">
                                             <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                                             <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
+                                            <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
+                                                pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                                                pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
+                                                pedido.tipoEntregaPedidoId || 'N/A'
+                                            }</p>
                                             <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
                                             <p class="order-item"><i class="fas fa-shopping-cart me-2"></i><strong data-i18n="pedidos.items">${t.items || 'Itens'}:</strong> ${pedido.lineas ? pedido.lineas.length : '0'}</p>
                                         </div>
@@ -61,7 +67,7 @@ const PedidoView = {
                     <!-- Barra lateral con el formulario -->
                     <aside class="col-lg-3 col-md-4 sidebar">
                         <div class="sidebar-sticky">
-                            <div class="pedido-search-header">
+                            <div class="product-search-header">
                                 <h2 data-i18n="pedidos.title">${t.title || 'Buscar Pedidos'}</h2>
                                 <form id="search-pedidos-form" class="search-form-grid">
                                     <div class="form-group">
@@ -133,11 +139,11 @@ const PedidoView = {
                                             <input type="text" class="form-control" id="descripcion" placeholder="${t.descriptionPlaceholder || 'Digite a descrição'}">
                                         </div>
                                     </div>
-                                    <div class="text-center mt-3">
-                                        <button type="submit" class="btn btn-primary px-4" data-i18n="pedidos.search">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="submit" class="btn btn-primary" data-i18n="pedidos.search">
                                             <i class="bi bi-search me-2"></i>${t.search || 'Buscar'}
                                         </button>
-                                        <button type="button" id="clear-search-form" class="btn btn-secondary px-4 mt-2" data-i18n="pedidos.clear">
+                                        <button type="button" id="clear-search-form" class="btn btn-outline-secondary" data-i18n="pedidos.clear">
                                             <i class="bi bi-x-circle me-2"></i>${t.clear || 'Limpar'}
                                         </button>
                                     </div>
@@ -154,17 +160,16 @@ const PedidoView = {
                 </div>
             </div>
         </div>
-    `;
+        `;
     },
 
-    // Keep getProductImageSrc if needed elsewhere, otherwise comment out or remove
     async getProductImageSrc(productId) {
         if (!productId) {
             return './img/placeholder.png';
         }
         try {
             const images = await FileService.getImagesByProductoId(productId);
-            if (images && images.length > 0) {
+            if (images && images.length) {
                 return `http://192.168.99.40:8080${images[0].url}`;
             }
             return './img/placeholder.png';
@@ -173,8 +178,6 @@ const PedidoView = {
             return './img/placeholder.png';
         }
     },
-
-    // En pedidoView.js - Método getPedidoDetalheView
 
     getPedidoDetalheView(pedido, lang = 'pt') {
         let t = {};
@@ -202,18 +205,22 @@ const PedidoView = {
             }
         }
 
-        // Determinar la URL de retorno basada en el rol
         const backUrl = isEmpleado ? '#buscar-pedidos' : '#pedidos';
         const backText = isEmpleado ? (t.backToSearch || 'Voltar à Busca') : (t.backToOrders || 'Voltar aos Pedidos');
 
         return `
         <div class="container order-detail-container mt-5">
-            <h2 class="order-detail-title mb-4 text-center" data-i18n="pedidos.orderDetail">${t.orderDetail || 'Detalhes do Pedido'} #${pedido.id}</h2>
+            <h3 class="order-detail-title mb-1 text-center" data-i18n="pedidos.orderDetail">${t.orderDetail || 'Detalhes do Pedido'} #${pedido.id}</h3>
             <div class="card order-detail-card">
                 <div class="card-body p-4">
                     <div class="order-detail-info">
                         <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                         <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
+                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
+                            pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                            pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
+                            pedido.tipoEntregaPedidoId || 'N/A'
+                        }</p>
                         <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
                     </div>
                     ${isEmpleado ? `
@@ -253,7 +260,7 @@ const PedidoView = {
                 </div>
             </div>
         </div>
-    `;
+        `;
     },
 
     getPaginationControls(currentPage, totalPages, totalItems, itemsPerPage) {
@@ -342,6 +349,11 @@ const PedidoView = {
                                     <div class="order-details">
                                         <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                                         <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
+                                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
+                                            pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                                            pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
+                                            pedido.tipoEntregaPedidoId || 'N/A'
+                                        }</p>
                                         <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
                                         <p class="order-item"><i class="fas fa-shopping-cart me-2"></i><strong data-i18n="pedidos.items">${t.items || 'Itens'}:</strong> ${pedido.lineas ? pedido.lineas.length : '0'}</p>
                                     </div>

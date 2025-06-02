@@ -1,6 +1,4 @@
-import { ADDRGETNETWORKPARAMS } from "dns";
 
-// translations.js
 const translations = {
     es: {
         nav: {
@@ -17,8 +15,8 @@ const translations = {
             logout: "Cerrar Sesión",
             info: "Información",
             contact: "Contacto",
-            services: "Servicios de la Empresa"
-            
+            services: "Servicios de la Empresa",
+            addEmployees: "Añadir Empleados"
         },
         header: {
             title: "Bienvenidos a Ciberloja",
@@ -410,7 +408,8 @@ const translations = {
             logout: "Sair",
             info: "Informações",
             contact: "Contato",
-            services: "Serviços da Empresa"
+            services: "Serviços da Empresa",
+            addEmployees: "Adicionar Funcionários"
         },
         header: {
             title: "Bem-vindos à Ciberloja",
@@ -804,7 +803,8 @@ const translations = {
             logout: "Logout",
             info: "Information",
             contact: "Contact",
-            services: "Company Services"
+            services: "Company Services",
+            addEmployees: "Add Employees"
         },
         header: {
             title: "Welcome to Ciberloja",

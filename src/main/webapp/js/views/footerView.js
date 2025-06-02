@@ -47,7 +47,7 @@ const FooterView = {
             <h3 data-i18n="contact.infoTitle">${t.infoTitle}</h3>
             <ul>
               <li><strong data-i18n="contact.phone">${t.phone}</strong></li>
-              <li><strong data-i18n="contact.email">${t.email}</strong>: <a href="mailto:geral@ciberloja.com">geral@ciberloja.com</a></li>
+              <li><strong>Email:</strong><a href="mailto:geral@ciberloja.com">geral@ciberloja.com</a></li>
               <li><strong data-i18n="contact.hours">${t.hours}</strong></li>
             </ul>
           </div>

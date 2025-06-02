@@ -11,9 +11,10 @@ const FooterController = {
       this.currentLang = e.detail.lang;
       this.render();
       // Re-renderizar páginas de contacto o servicios si están activas
-      if (window.location.hash === '#contacto' || window.location.hash === '#contact') {
+      const currentHash = window.location.hash;
+      if (currentHash === '#contact' || currentHash === '#contacto') {
         this.showContactPage();
-      } else if (window.location.hash === '#servicos'  || window.location.hash === '#services') {
+      } else if (currentHash === '#services' || currentHash === '#servicos') {
         this.showServicesPage();
       }
     });
@@ -30,45 +31,56 @@ const FooterController = {
   setupEvents() {
     console.log("FooterController.setupEvents()...");
     document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('contact-link')) {
+      // Manejo de clicks en enlaces del footer
+      if (e.target.classList.contains('contact-link') || e.target.closest('.contact-link')) {
         e.preventDefault();
-        this.showContactPage();
-      } else if (e.target.classList.contains('services-link')) {
+        window.location.hash = '#contact';
+      } else if (e.target.classList.contains('services-link') || e.target.closest('.services-link')) {
         e.preventDefault();
-        this.showServicesPage();
-      }
-    });
-
-    window.addEventListener('hashchange', () => {
-      if (window.location.hash === '#contacto' || window.location.hash === '#contact') {
-        this.showContactPage();
-      } else if (window.location.hash === '#servicos' || window.location.hash === '#services') {
-        this.showServicesPage();
+        window.location.hash = '#services';
       }
     });
   },
 
   showContactPage() {
     console.log('Showing contact page...');
-    const app = document.getElementById('pro-inventario');
+    const proInventario = document.getElementById('pro-inventario');
     const homeContent = document.getElementById('home-content');
 
-    if (homeContent) homeContent.style.display = 'none';
-    if (app) {
+    if (homeContent) {
+      homeContent.classList.add('hidden');
+    }
+    if (proInventario) {
+      proInventario.classList.remove('hidden');
       FooterView.renderContact('pro-inventario', this.currentLang);
-      app.style.display = 'block';
     }
   },
 
   showServicesPage() {
     console.log('Showing services page...');
-    const app = document.getElementById('pro-inventario');
+    const proInventario = document.getElementById('pro-inventario');
     const homeContent = document.getElementById('home-content');
 
-    if (homeContent) homeContent.style.display = 'none';
-    if (app) {
+    if (homeContent) {
+      homeContent.classList.add('hidden');
+    }
+    if (proInventario) {
+      proInventario.classList.remove('hidden');
       FooterView.renderServices('pro-inventario', this.currentLang);
-      app.style.display = 'block';
+    }
+  },
+
+  updateTranslations(lang) {
+    console.log('Updating footer translations to:', lang);
+    this.currentLang = lang;
+    this.render();
+    
+    // Re-renderizar la página actual si es contacto o servicios
+    const currentHash = window.location.hash;
+    if (currentHash === '#contact' || currentHash === '#contacto') {
+      this.showContactPage();
+    } else if (currentHash === '#services' || currentHash === '#servicos') {
+      this.showServicesPage();
     }
   },
 };

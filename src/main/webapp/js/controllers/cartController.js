@@ -20,7 +20,6 @@ const CartController = {
             if (window.location.hash === '#cart') {
                 this.loadCart();
             }
-           
         });
     },
 
@@ -41,41 +40,10 @@ const CartController = {
                 console.warn("Ver Produtos button not found. Ensure it exists in the DOM.");
             }
         }, 100);
-        // Ensure the cart container exists
 
         // Use a single event handler to avoid duplicates
         const handleCartEvents = async (event) => {
             const target = event.target;
-            // console.log("Click event captured on:", target); // Debug log
-            // // Add to cart from any page
-            // const addToCartButton = target.closest(".btn-add-to-cart, #addToCartBtn");
-            // if (addToCartButton) {
-            //     console.log("Botão de 'Adicionar ao carrinho' clicado");
-            //     event.preventDefault();
-
-            //     const productId = addToCartButton.dataset.id;
-            //     const productName = addToCartButton.dataset.nombre;
-            //     const productPrice = addToCartButton.dataset.precio;
-            //     // CAMBIO AQUÍ: usar el nombre correcto del atributo
-            //     const stockDisponible = addToCartButton.dataset.stockDisponible || 100; // Default stock if not provided
-
-            //     console.log(`Dados do produto: ID=${productId}, Nome=${productName}, Preço=${productPrice}, Stock=${stockDisponible}`);
-
-            //     if (!productId || !productName || !productPrice) {
-            //         console.error("Dados do produto faltantes no botão:", addToCartButton);
-            //         alert("Erro: Dados do produto incompletos");
-            //         return;
-            //     }
-
-            //     const product = {
-            //         id: productId,
-            //         nombre: productName,
-            //         precio: parseFloat(productPrice),
-            //         stockDisponible: parseFloat(stockDisponible)
-            //     };
-
-            //     await this.addToCart(productId, 1, product);
-            // }
 
             // Remove product from cart
             if (target.classList.contains("remove-from-cart-btn")) {
@@ -155,49 +123,6 @@ const CartController = {
         }
     },
 
-    // async addToCart(productId, quantity, product = null) {
-    //     console.log(`Adding product ${productId} to cart with quantity ${quantity}...`);
-    //     try {
-    //         const clienteData = this.getStoredClienteData();
-    //         if (!clienteData || !clienteData.id) {
-    //             throw new Error(Translations[this.currentLang].alerts.loginCart || "Please log in to add items to cart.");
-    //         }
-
-    //         // If product is not provided, fetch it
-    //         if (!product) {
-    //             product = await ProductoService.findById(productId);
-    //             if (!product) {
-    //                 throw new Error(Translations[this.currentLang].alerts.productNotFound || "Product not found.");
-    //             }
-    //         }
-
-    //         if (product.stockDisponible < quantity) {
-    //             throw new Error(Translations[this.currentLang].alerts.insufficientStock || "Insufficient stock available.");
-    //         }
-
-    //         const cart = await CartService.addToCart(clienteData.id, product, quantity);
-
-    //         // Fetch images for the added product
-    //         for (let item of cart.items) {
-    //             if (item.product.id === productId) {
-    //                 try {
-    //                     const images = await FileService.getImagesByProductoId(item.product.id);
-    //                     item.product.images = images || [];
-    //                 } catch (imageError) {
-    //                     console.warn(`Não foi possível carregar as imagens para o produto ${item.product.id}:`, imageError);
-    //                     item.product.images = [];
-    //                 }
-    //             }
-    //         }
-    //         alert(`✅ Adicionado ${quantity} x ${product.nombre} ao carrinho!`);
-
-    //         // await CartView.renderCart("pro-inventario", cart, this.currentLang);
-    //     } catch (error) {
-    //         console.error("Error adding to cart:", error);
-    //         CartView.renderError("pro-inventario", error.message || Translations[this.currentLang].alerts.addProductError || "Error adding to cart.", this.currentLang);
-    //     }
-    // },
-
     async removeFromCart(productId) {
         console.log(`Removing product ${productId} from cart...`);
         try {
@@ -272,6 +197,16 @@ const CartController = {
                 throw new Error(Translations[this.currentLang].alerts.emptyCart || "Cart is empty. Add items before checking out.");
             }
 
+            // Get selected delivery type
+            const deliveryTypeSelect = document.getElementById('delivery-type');
+            if (!deliveryTypeSelect) {
+                throw new Error(Translations[this.currentLang].alerts.deliveryTypeMissing || "Delivery type not selected.");
+            }
+            const tipoEntregaId = parseInt(deliveryTypeSelect.value);
+            if (![1, 2].includes(tipoEntregaId)) {
+                throw new Error(Translations[this.currentLang].alerts.invalidDeliveryType || "Invalid delivery type selected.");
+            }
+
             const pedidoData = {
                 clienteId: clienteData.id,
                 lineas: cart.items.map(item => ({
@@ -283,7 +218,8 @@ const CartController = {
                 precio: cart.total,
                 fechaRealizacion: new Date().toISOString(),
                 tipoEstadoPedidoId: 1,
-                tipoEstadoPedidoNombre: "Pendente"
+                tipoEstadoNombre: "Pendente",
+                tipoEntregaPedidoId: tipoEntregaId
             };
 
             console.log("Dados enviados ao backend:", JSON.stringify(pedidoData, null, 2));

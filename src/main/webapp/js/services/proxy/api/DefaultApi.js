@@ -871,6 +871,7 @@ export default class DefaultApi {
    * @param {Number} opts.tipoEstadoPedidoId 
    * @param {String} opts.productoId 
    * @param {String} opts.descripcion 
+   * @param {Number} opts.tipoEntregaId 
    * @param {module:api/DefaultApi~findPedidosByCriteriaCallback} callback The callback function, accepting three arguments: error, data, response
    * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
    */
@@ -882,7 +883,7 @@ export default class DefaultApi {
 
     };
     let queryParams = {
-      'id': opts['id'], 'fechaDesde': opts['fechaDesde'], 'fechaHasta': opts['fechaHasta'], 'precioDesde': opts['precioDesde'], 'precioHasta': opts['precioHasta'], 'clienteId': opts['clienteId'], 'tipoEstadoPedidoId': opts['tipoEstadoPedidoId'], 'productoId': opts['productoId'], 'descripcion': opts['descripcion']
+      'id': opts['id'], 'fechaDesde': opts['fechaDesde'], 'fechaHasta': opts['fechaHasta'], 'precioDesde': opts['precioDesde'], 'precioHasta': opts['precioHasta'], 'clienteId': opts['clienteId'], 'tipoEstadoPedidoId': opts['tipoEstadoPedidoId'], 'productoId': opts['productoId'], 'descripcion': opts['descripcion'], 'tipoEntregaId': opts['tipoEntregaId']
     };
     let headerParams = {
 

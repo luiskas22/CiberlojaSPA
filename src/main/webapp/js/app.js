@@ -142,9 +142,18 @@ const Router = {
           App.hideHomeContent();
         }
         break;
+
       case 'contact':
-        App.showContactContent();
+      case 'contacto':
+        FooterController.showContactPage();
+        App.hideHomeContent();
         break;
+      case 'services':
+      case 'servicos':
+        FooterController.showServicesPage();
+        App.hideHomeContent();
+        break;
+
       case '':
       case 'home':
         App.showHomeContent();
@@ -495,7 +504,17 @@ const App = {
       `;
     }
   },
+  showContactContent() {
+    console.log("Mostrando contenido de contacto...");
+    FooterController.showContactPage();
+    this.hideHomeContent();
+  },
 
+  showServicesContent() {
+    console.log("Mostrando contenido de servicios...");
+    FooterController.showServicesPage();
+    this.hideHomeContent();
+  },
   isCliente() {
     return this.cliente && (this.cliente.rol_id === 1 || !this.cliente.hasOwnProperty('rol_id'));
   },

@@ -54,6 +54,10 @@ export default class Pedido {
         obj.tipoEstadoPedidoId = ApiClient.convertToType(data['tipoEstadoPedidoId'], 'Number');
       if (data.hasOwnProperty('tipoEstadoPedidoNombre'))
         obj.tipoEstadoPedidoNombre = ApiClient.convertToType(data['tipoEstadoPedidoNombre'], 'String');
+      if (data.hasOwnProperty('tipoEntregaPedidoId'))
+        obj.tipoEntregaPedidoId = ApiClient.convertToType(data['tipoEntregaPedidoId'], 'Number');
+      if (data.hasOwnProperty('tipoEntregaPedido'))
+        obj.tipoEntregaPedido = ApiClient.convertToType(data['tipoEntregaPedido'], 'String');
       if (data.hasOwnProperty('lineas'))
         obj.lineas = ApiClient.convertToType(data['lineas'], [LineaPedido]);
     }
@@ -95,6 +99,16 @@ Pedido.prototype.tipoEstadoPedidoId = undefined;
  * @member {String} tipoEstadoPedidoNombre
  */
 Pedido.prototype.tipoEstadoPedidoNombre = undefined;
+
+/**
+ * @member {Number} tipoEntregaPedidoId
+ */
+Pedido.prototype.tipoEntregaPedidoId = undefined;
+
+/**
+ * @member {String} tipoEntregaPedido
+ */
+Pedido.prototype.tipoEntregaPedido = undefined;
 
 /**
  * @member {Array.<module:model/LineaPedido>} lineas

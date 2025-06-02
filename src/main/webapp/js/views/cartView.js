@@ -20,25 +20,32 @@ const CartView = {
         }
 
         container.innerHTML = `
-            <div class="container cart-container mt-5">
-                <h2 class="cart-title mb-4 text-center" data-i18n="cart.title">${t.title || 'O Seu Carrinho de Compras'}</h2>
-                ${items.length === 0 ? `
-                    <div class="alert alert-info text-center py-4" data-i18n="cart.empty">
-                        <i class="fas fa-info-circle me-2"></i>
-                        ${t.empty || 'O seu carrinho está vazio.'}
-                        <div class="mt-3" >
-                            <a href="#produtos" id="verProductosBtn" class="btn btn-success btn-view-products" data-i18n="cart.viewProducts">${t.viewProducts || 'Ver Produtos'}</a>
-                        </div>
+        <div class="container cart-container mt-5">
+            <h2 class="cart-title mb-4 text-center" data-i18n="cart.title">${t.title || 'O Seu Carrinho de Compras'}</h2>
+            ${items.length === 0 ? `
+                <div class="alert alert-info text-center py-4" data-i18n="cart.empty">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${t.empty || 'O seu carrinho está vazio.'}
+                    <div class="mt-3">
+                        <a href="#produtos" id="verProductosBtn" class="btn btn-success btn-view-products" data-i18n="cart.viewProducts">${t.viewProducts || 'Ver Produtos'}</a>
                     </div>
-                ` : `
-                    ${this.renderCartItems(cart, lang)}
-                    <div class="cart-actions text-center mt-4">
-                        <button id="clear-cart-btn" class="btn btn-outline-danger me-2" data-i18n="cart.clear">${t.clear || 'Limpar Carrinho'}</button>
-                        <button id="checkout-btn" class="btn btn-success" data-i18n="cart.checkout">${t.checkout || 'Finalizar Compra'}</button>
-                    </div>
-                `}
-            </div>
-        `;
+                </div>
+            ` : `
+                ${this.renderCartItems(cart, lang)}
+                <div class="form-group mb-3">
+                    <label for="delivery-type" class="form-label" data-i18n="cart.deliveryType">${t.deliveryType || 'Tipo de Entrega'}</label>
+                    <select id="delivery-type" class="form-select">
+                        <option value="1" data-i18n="cart.storePickup">${t.storePickup || 'Recolha na Loja'}</option>
+                        <option value="2" data-i18n="cart.homeDelivery">${t.homeDelivery || 'A Domicilio'}</option>
+                    </select>
+                </div>
+                <div class="cart-actions text-center mt-4">
+                    <button id="clear-cart-btn" class="btn btn-outline-danger me-2" data-i18n="cart.clear">${t.clear || 'Limpar Carrinho'}</button>
+                    <button id="checkout-btn" class="btn btn-success" data-i18n="cart.checkout">${t.checkout || 'Finalizar Compra'}</button>
+                </div>
+            `}
+        </div>
+    `;
     },
 
     renderCartItems(cart, lang = 'pt') {
@@ -64,11 +71,11 @@ const CartView = {
                     </thead>
                     <tbody>
                         ${cart.items.map(item => {
-                            const nombre = item.product.nombre || 'N/A';
-                            const imageSrc = item.product.images && item.product.images.length > 0
-                                ? `http://192.168.99.40:8080${item.product.images[0].url}`
-                                : './img/placeholder.png';
-                            return `
+            const nombre = item.product.nombre || 'N/A';
+            const imageSrc = item.product.images && item.product.images.length > 0
+                ? `http://192.168.99.40:8080${item.product.images[0].url}`
+                : './img/placeholder.png';
+            return `
                                 <tr class="cart-item">
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -98,7 +105,7 @@ const CartView = {
                                     </td>
                                 </tr>
                             `;
-                        }).join('')}
+        }).join('')}
                     </tbody>
                     <tfoot>
                         <tr>

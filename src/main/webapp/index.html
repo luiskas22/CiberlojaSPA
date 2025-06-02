@@ -22,84 +22,76 @@
 			<p class="subtitle" data-i18n="header.subtitle"></p>
 		</div>
 	</header>
-
 	<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
 		<div class="container">
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+				aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav me-auto">
-					<li class="nav-item"><a class="nav-link active" href="#" data-i18n="nav.home"><i
-								class="fas fa-home me-1"></i></a></li>
-					<!-- Dropdown for Products -->
-					<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="productsDropdown"
-							role="button" data-bs-toggle="dropdown" data-i18n="nav.products">
-							<i class="fas fa-box me-1"></i>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" href="#crear-productos" data-i18n="nav.addProducts"><i
-										class="fas fa-plus-circle me-1"></i></a></li>
-							<li><a class="dropdown-item" href="#buscar-produtos" data-i18n="nav.searchProducts"><i
-										class="fas fa-search me-1"></i></a>
-							</li>
-						</ul>
+					<li class="nav-item">
+						<a class="nav-link active" href="#" data-i18n="nav.home"><i class="fas fa-home me-1"></i></a>
 					</li>
-					<li class="nav-item"><a class="nav-link" href="#buscar-pedidos" data-i18n="nav.searchOrders"><i
-								class="fas fa-search me-1"></i></a></li>
-					<!-- Añadir Empleados al lado de Procurar Encomenda -->
-					<li class="nav-item"><a class="nav-link" href="#crear-empleados" data-i18n="nav.addEmployees"><i
-								class="fas fa-user-plus me-1"></i></a></li>
-					<!-- Dropdown for Contact and Services -->
-					<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="infoDropdown"
-							role="button" data-bs-toggle="dropdown" data-i18n="nav.info">
+					<li class="nav-item">
+						<a class="nav-link" href="#buscar-produtos" data-i18n="nav.searchProducts"><i
+								class="fas fa-search me-1"></i></a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#buscar-pedidos" data-i18n="nav.searchOrders"><i
+								class="fas fa-search me-1"></i></a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#crear-empleados" data-i18n="nav.addEmployees"><i
+								class="fas fa-user-plus me-1"></i></a>
+					</li>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" id="infoDropdown" role="button"
+							data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.info">
 							<i class="fas fa-info-circle me-1"></i>
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu" aria-labelledby="infoDropdown">
 							<li><a class="dropdown-item" href="#contact" data-i18n="nav.contact"><i
-										class="fas fa-address-book me-1"></i></a>
-							</li>
+										class="fas fa-address-book me-1"></i></a></li>
 							<li><a class="dropdown-item" href="#services" data-i18n="nav.services"><i
 										class="fas fa-concierge-bell me-1"></i></a></li>
 						</ul>
 					</li>
-					<li class="nav-item dropdown" id="accountDropdown" style="display: none;"><a
-							class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-							data-bs-toggle="dropdown" data-i18n="nav.myAccount"> <i class="fas fa-user-circle me-1"></i>
+					<li class="nav-item dropdown" id="accountDropdown" style="display: none;">
+						<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+							data-bs-toggle="dropdown" aria-expanded="false" data-i18n="nav.myAccount">
+							<i class="fas fa-user-circle me-1"></i>
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 							<li><a class="dropdown-item" href="#mi-perfil" data-i18n="nav.myProfile"><i
 										class="fas fa-user me-1"></i></a></li>
 							<li><a class="dropdown-item" href="#mis-direcciones" data-i18n="nav.myAddresses"><i
 										class="fas fa-map-marker-alt me-1"></i></a></li>
 							<li><a class="dropdown-item" href="#mis-pedidos" data-i18n="nav.myOrders"><i
-										class="fas fa-shopping-bag me-1"></i></a>
-							</li>
+										class="fas fa-shopping-bag me-1"></i></a></li>
 							<li><a class="dropdown-item" href="#cart" data-i18n="nav.myCart"><i
-										class="fas fa-shopping-cart me-1"></i></a>
-							</li>
+										class="fas fa-shopping-cart me-1"></i></a></li>
 							<li>
 								<hr class="dropdown-divider">
 							</li>
 							<li><a class="dropdown-item" href="#" id="logoutLink" data-i18n="nav.logout"><i
-										class="fas fa-sign-out-alt me-1"></i></a>
-							</li>
+										class="fas fa-sign-out-alt me-1"></i></a></li>
 						</ul>
 					</li>
 				</ul>
-			</div>
-			<div class="navbar-nav ms-auto">
-				<div class="dropdown">
-					<button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown"
-						data-bs-toggle="dropdown" aria-expanded="false">
-						<i class="fas fa-globe me-1"></i> <span id="currentLanguage">Português</span>
-					</button>
-					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-						<li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
-						<li><a class="dropdown-item" href="#" data-lang="pt">Português</a></li>
-						<li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
-					</ul>
-				</div>
+				<ul class="navbar-nav ms-auto">
+					<li class="nav-item dropdown">
+						<button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown"
+							data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="fas fa-globe me-1"></i> <span id="currentLanguage">Português</span>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+							<li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
+							<li><a class="dropdown-item" href="#" data-lang="pt">Português</a></li>
+							<li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+						</ul>
+					</li>
+				</ul>
 			</div>
 		</div>
 	</nav>
