@@ -479,7 +479,6 @@ const ProductoController = {
             const quantity = 1;
             await CartService.addToCart(clienteId, product, quantity);
 
-            alert(`✅ Adicionado ${quantity} x ${product.nombre} ao carrinho!`);
         } catch (error) {
             console.error("Error al añadir el producto al carrito:", error);
             alert(Translations[this.currentLang].alerts.addToCartError || "Error al añadir el producto al carrito: " + error.message);

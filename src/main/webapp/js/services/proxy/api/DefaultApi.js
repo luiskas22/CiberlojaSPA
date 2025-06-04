@@ -15,14 +15,15 @@
  */
 import ApiClient from "../ApiClient.js";
 import ClienteDTO from '../model/ClienteDTO.js';
+import Concelho from '../model/Concelho.js';
 import DireccionDTO from '../model/DireccionDTO.js';
+import Distrito from '../model/Distrito.js';
 import EmpleadoDTO from '../model/EmpleadoDTO.js';
 import FormDataContentDisposition from '../model/FormDataContentDisposition.js';
-import Localidad from '../model/Localidad.js';
+import Freguesia from '../model/Freguesia.js';
 import Pais from '../model/Pais.js';
 import Pedido from '../model/Pedido.js';
 import ProductoDTO from '../model/ProductoDTO.js';
-import Provincia from '../model/Provincia.js';
 import Results from '../model/Results.js';
 
 /**
@@ -396,20 +397,20 @@ export default class DefaultApi {
     );
   }
   /**
-   * Callback function to receive the result of the findAllLocalidades operation.
-   * @callback moduleapi/DefaultApi~findAllLocalidadesCallback
+   * Callback function to receive the result of the findAllConcelhos operation.
+   * @callback moduleapi/DefaultApi~findAllConcelhosCallback
    * @param {String} error Error message, if any.
-   * @param {module:model/Localidad{ data The data returned by the service call.
+   * @param {module:model/Concelho{ data The data returned by the service call.
    * @param {String} response The complete HTTP response.
    */
 
   /**
-   * Obtener todas las localidades
-   * Recupera una lista de todas las localidades disponibles en la base de datos
-   * @param {module:api/DefaultApi~findAllLocalidadesCallback} callback The callback function, accepting three arguments: error, data, response
+   * Obtener todas las concelhos
+   * Recupera una lista de todas las concelhos disponibles en la base de datos
+   * @param {module:api/DefaultApi~findAllConcelhosCallback} callback The callback function, accepting three arguments: error, data, response
    * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
    */
-  findAllLocalidades(callback) {
+  findAllConcelhos(callback) {
 
     let postBody = null;
 
@@ -429,10 +430,94 @@ export default class DefaultApi {
     let authNames = [];
     let contentTypes = [];
     let accepts = ['application/json'];
-    let returnType = Localidad;
+    let returnType = Concelho;
 
     return this.apiClient.callApi(
-      '/api/localidad/findAll', 'GET',
+      '/api/concelho/findAll', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, callback
+    );
+  }
+  /**
+   * Callback function to receive the result of the findAllDistritos operation.
+   * @callback moduleapi/DefaultApi~findAllDistritosCallback
+   * @param {String} error Error message, if any.
+   * @param {module:model/Distrito{ data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * Obtener todas los distritos
+   * Recupera una lista de todas los distritos disponibles en la base de datos
+   * @param {module:api/DefaultApi~findAllDistritosCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
+   */
+  findAllDistritos(callback) {
+
+    let postBody = null;
+
+    let pathParams = {
+
+    };
+    let queryParams = {
+
+    };
+    let headerParams = {
+
+    };
+    let formParams = {
+
+    };
+
+    let authNames = [];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = Distrito;
+
+    return this.apiClient.callApi(
+      '/api/distrito/findAll', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, callback
+    );
+  }
+  /**
+   * Callback function to receive the result of the findAllFreguesias operation.
+   * @callback moduleapi/DefaultApi~findAllFreguesiasCallback
+   * @param {String} error Error message, if any.
+   * @param {module:model/Freguesia{ data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * Obtener todas las freguesias
+   * Recupera una lista de todas las freguesias disponibles en la base de datos
+   * @param {module:api/DefaultApi~findAllFreguesiasCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
+   */
+  findAllFreguesias(callback) {
+
+    let postBody = null;
+
+    let pathParams = {
+
+    };
+    let queryParams = {
+
+    };
+    let headerParams = {
+
+    };
+    let formParams = {
+
+    };
+
+    let authNames = [];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = Freguesia;
+
+    return this.apiClient.callApi(
+      '/api/freguesia/findAll', 'GET',
       pathParams, queryParams, headerParams, formParams, postBody,
       authNames, contentTypes, accepts, returnType, callback
     );
@@ -475,48 +560,6 @@ export default class DefaultApi {
 
     return this.apiClient.callApi(
       '/api/pais/findAll', 'GET',
-      pathParams, queryParams, headerParams, formParams, postBody,
-      authNames, contentTypes, accepts, returnType, callback
-    );
-  }
-  /**
-   * Callback function to receive the result of the findAllProvincias operation.
-   * @callback moduleapi/DefaultApi~findAllProvinciasCallback
-   * @param {String} error Error message, if any.
-   * @param {module:model/Provincia{ data The data returned by the service call.
-   * @param {String} response The complete HTTP response.
-   */
-
-  /**
-   * Obtener todas las provincias
-   * Recupera una lista de todas las provincias disponibles en la base de datos
-   * @param {module:api/DefaultApi~findAllProvinciasCallback} callback The callback function, accepting three arguments: error, data, response
-   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
-   */
-  findAllProvincias(callback) {
-
-    let postBody = null;
-
-    let pathParams = {
-
-    };
-    let queryParams = {
-
-    };
-    let headerParams = {
-
-    };
-    let formParams = {
-
-    };
-
-    let authNames = [];
-    let contentTypes = [];
-    let accepts = ['application/json'];
-    let returnType = Provincia;
-
-    return this.apiClient.callApi(
-      '/api/provincia/findAll', 'GET',
       pathParams, queryParams, headerParams, formParams, postBody,
       authNames, contentTypes, accepts, returnType, callback
     );
@@ -569,6 +612,53 @@ export default class DefaultApi {
     );
   }
   /**
+   * Callback function to receive the result of the findConcelhoById operation.
+   * @callback moduleapi/DefaultApi~findConcelhoByIdCallback
+   * @param {String} error Error message, if any.
+   * @param {module:model/Concelho{ data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * Búsqueda por ID de concelhos
+   * Recupera todos los datos de una concelhos específica por su ID
+   * @param {Number} id 
+   * @param {module:api/DefaultApi~findConcelhoByIdCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
+   */
+  findConcelhoById(id, callback) {
+
+    let postBody = null;
+    // verify the required parameter 'id' is set
+    if (id === undefined || id === null) {
+      throw new Error("Missing the required parameter 'id' when calling findConcelhoById");
+    }
+
+    let pathParams = {
+      'id': id
+    };
+    let queryParams = {
+
+    };
+    let headerParams = {
+
+    };
+    let formParams = {
+
+    };
+
+    let authNames = [];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = Concelho;
+
+    return this.apiClient.callApi(
+      '/api/concelho/find/{id}', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, callback
+    );
+  }
+  /**
    * Callback function to receive the result of the findDireccionById operation.
    * @callback moduleapi/DefaultApi~findDireccionByIdCallback
    * @param {String} error Error message, if any.
@@ -611,6 +701,100 @@ export default class DefaultApi {
 
     return this.apiClient.callApi(
       '/api/direccion/find/{id}', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, callback
+    );
+  }
+  /**
+   * Callback function to receive the result of the findDireccionesByClienteId operation.
+   * @callback moduleapi/DefaultApi~findDireccionesByClienteIdCallback
+   * @param {String} error Error message, if any.
+   * @param {Array.<module:model/DireccionDTO>{ data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * Búsqueda de direcciones por ID de cliente
+   * Recupera todas las direcciones asociadas a un cliente por su ID
+   * @param {Number} clienteId 
+   * @param {module:api/DefaultApi~findDireccionesByClienteIdCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
+   */
+  findDireccionesByClienteId(clienteId, callback) {
+
+    let postBody = null;
+    // verify the required parameter 'clienteId' is set
+    if (clienteId === undefined || clienteId === null) {
+      throw new Error("Missing the required parameter 'clienteId' when calling findDireccionesByClienteId");
+    }
+
+    let pathParams = {
+      'clienteId': clienteId
+    };
+    let queryParams = {
+
+    };
+    let headerParams = {
+
+    };
+    let formParams = {
+
+    };
+
+    let authNames = [];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = [DireccionDTO];
+
+    return this.apiClient.callApi(
+      '/api/direccion/direcciones/{clienteId}', 'GET',
+      pathParams, queryParams, headerParams, formParams, postBody,
+      authNames, contentTypes, accepts, returnType, callback
+    );
+  }
+  /**
+   * Callback function to receive the result of the findDistritoById operation.
+   * @callback moduleapi/DefaultApi~findDistritoByIdCallback
+   * @param {String} error Error message, if any.
+   * @param {module:model/Distrito{ data The data returned by the service call.
+   * @param {String} response The complete HTTP response.
+   */
+
+  /**
+   * Búsqueda por ID de distritos
+   * Recupera todos los datos de un distrito específica por su ID
+   * @param {Number} id 
+   * @param {module:api/DefaultApi~findDistritoByIdCallback} callback The callback function, accepting three arguments: error, data, response
+   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
+   */
+  findDistritoById(id, callback) {
+
+    let postBody = null;
+    // verify the required parameter 'id' is set
+    if (id === undefined || id === null) {
+      throw new Error("Missing the required parameter 'id' when calling findDistritoById");
+    }
+
+    let pathParams = {
+      'id': id
+    };
+    let queryParams = {
+
+    };
+    let headerParams = {
+
+    };
+    let formParams = {
+
+    };
+
+    let authNames = [];
+    let contentTypes = [];
+    let accepts = ['application/json'];
+    let returnType = Distrito;
+
+    return this.apiClient.callApi(
+      '/api/distrito/find/{id}', 'GET',
       pathParams, queryParams, headerParams, formParams, postBody,
       authNames, contentTypes, accepts, returnType, callback
     );
@@ -663,26 +847,26 @@ export default class DefaultApi {
     );
   }
   /**
-   * Callback function to receive the result of the findLocalidadById operation.
-   * @callback moduleapi/DefaultApi~findLocalidadByIdCallback
+   * Callback function to receive the result of the findFreguesiaById operation.
+   * @callback moduleapi/DefaultApi~findFreguesiaByIdCallback
    * @param {String} error Error message, if any.
-   * @param {module:model/Localidad{ data The data returned by the service call.
+   * @param {module:model/Freguesia{ data The data returned by the service call.
    * @param {String} response The complete HTTP response.
    */
 
   /**
-   * Búsqueda por ID de localidad
-   * Recupera todos los datos de una localidad específica por su ID
+   * Búsqueda por ID de freguesia
+   * Recupera todos los datos de una freguesia específica por su ID
    * @param {Number} id 
-   * @param {module:api/DefaultApi~findLocalidadByIdCallback} callback The callback function, accepting three arguments: error, data, response
+   * @param {module:api/DefaultApi~findFreguesiaByIdCallback} callback The callback function, accepting three arguments: error, data, response
    * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
    */
-  findLocalidadById(id, callback) {
+  findFreguesiaById(id, callback) {
 
     let postBody = null;
     // verify the required parameter 'id' is set
     if (id === undefined || id === null) {
-      throw new Error("Missing the required parameter 'id' when calling findLocalidadById");
+      throw new Error("Missing the required parameter 'id' when calling findFreguesiaById");
     }
 
     let pathParams = {
@@ -701,10 +885,10 @@ export default class DefaultApi {
     let authNames = [];
     let contentTypes = [];
     let accepts = ['application/json'];
-    let returnType = Localidad;
+    let returnType = Freguesia;
 
     return this.apiClient.callApi(
-      '/api/localidad/find/{id}', 'GET',
+      '/api/freguesia/find/{id}', 'GET',
       pathParams, queryParams, headerParams, formParams, postBody,
       authNames, contentTypes, accepts, returnType, callback
     );
@@ -1090,53 +1274,6 @@ export default class DefaultApi {
 
     return this.apiClient.callApi(
       '/api/producto/searchDestaques', 'GET',
-      pathParams, queryParams, headerParams, formParams, postBody,
-      authNames, contentTypes, accepts, returnType, callback
-    );
-  }
-  /**
-   * Callback function to receive the result of the findProvinciaById operation.
-   * @callback moduleapi/DefaultApi~findProvinciaByIdCallback
-   * @param {String} error Error message, if any.
-   * @param {module:model/Provincia{ data The data returned by the service call.
-   * @param {String} response The complete HTTP response.
-   */
-
-  /**
-   * Búsqueda por ID de provincias
-   * Recupera todos los datos de una provincias específica por su ID
-   * @param {Number} id 
-   * @param {module:api/DefaultApi~findProvinciaByIdCallback} callback The callback function, accepting three arguments: error, data, response
-   * data is of type: {@link <&vendorExtensions.x-jsdoc-type>}
-   */
-  findProvinciaById(id, callback) {
-
-    let postBody = null;
-    // verify the required parameter 'id' is set
-    if (id === undefined || id === null) {
-      throw new Error("Missing the required parameter 'id' when calling findProvinciaById");
-    }
-
-    let pathParams = {
-      'id': id
-    };
-    let queryParams = {
-
-    };
-    let headerParams = {
-
-    };
-    let formParams = {
-
-    };
-
-    let authNames = [];
-    let contentTypes = [];
-    let accepts = ['application/json'];
-    let returnType = Provincia;
-
-    return this.apiClient.callApi(
-      '/api/provincia/find/{id}', 'GET',
       pathParams, queryParams, headerParams, formParams, postBody,
       authNames, contentTypes, accepts, returnType, callback
     );

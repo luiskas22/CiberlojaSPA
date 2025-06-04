@@ -23,11 +23,10 @@ const PedidoView = {
                                         <div class="order-details">
                                             <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                                             <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
-                                            <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
-                                                pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
-                                                pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
-                                                pedido.tipoEntregaPedidoId || 'N/A'
-                                            }</p>
+                                            <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'Entrega ao domicílio') :
+                    pedido.tipoEntregaPedidoId || 'N/A'
+            }</p>
                                             <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
                                             <p class="order-item"><i class="fas fa-shopping-cart me-2"></i><strong data-i18n="pedidos.items">${t.items || 'Itens'}:</strong> ${pedido.lineas ? pedido.lineas.length : '0'}</p>
                                         </div>
@@ -64,7 +63,6 @@ const PedidoView = {
         <div class="main-content">
             <div class="productos-container">
                 <div class="row">
-                    <!-- Barra lateral con el formulario -->
                     <aside class="col-lg-3 col-md-4 sidebar">
                         <div class="sidebar-sticky">
                             <div class="product-search-header">
@@ -109,7 +107,7 @@ const PedidoView = {
                                         <label for="cliente-id" class="form-label" data-i18n="pedidos.clientId">${t.clientId || 'ID do Cliente'}</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                            <input type="number" class="form-control" id="cliente-id" placeholder="${t.clientIdPlaceholder || 'Digite o ID do cliente'}">
+                                            <input type="number" class="form-control" id="client-id" placeholder="${t.clientIdPlaceholder || 'Digite o ID do cliente'}">
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -129,7 +127,7 @@ const PedidoView = {
                                         <label for="producto-id" class="form-label" data-i18n="pedidos.productId">${t.productId || 'ID do Produto'}</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-box"></i></span>
-                                            <input type="number" class="form-control" id="producto-id" placeholder="${t.productIdPlaceholder || 'Digite o ID do produto'}">
+                                            <input type="number" class="form-control" id="producto-id">
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -151,7 +149,6 @@ const PedidoView = {
                             </div>
                         </div>
                     </aside>
-                    <!-- Contenido principal (resultados de búsqueda) -->
                     <main class="col-lg-9 col-md-8">
                         <div id="search-results" class="mt-4">
                             <p data-i18n="pedidos.resultsPlaceholder">${t.resultsPlaceholder || 'Resultados aparecerão aqui...'}</p>
@@ -182,7 +179,7 @@ const PedidoView = {
     getPedidoDetalheView(pedido, lang = 'pt') {
         let t = {};
         try {
-            t = Translations[lang]?.pedidos || {};
+            t = Translations[lang]?.todos || Translations[lang]?.pedidos || {};
         } catch (e) {
             console.warn('Translation not available:', e);
         }
@@ -190,18 +187,26 @@ const PedidoView = {
         let isEmpleado = false;
         if (window.App && window.App.isEmpleado) {
             isEmpleado = window.App.isEmpleado();
-            console.log("Verificación de empleado en getPedidoDetalheView:", {
-                isEmpleado,
-                cliente: window.App.cliente,
-                rol_id: window.App.cliente ? window.App.cliente.rol_id : null
-            });
+            console.log("Verificación de empleado:", { isEmpleado, cliente: window.App.cliente });
         } else {
-            console.warn("App o App.isEmpleado no está disponible. Verificando sessionStorage como respaldo.");
             const clienteData = sessionStorage.getItem("cliente");
             if (clienteData) {
                 const cliente = JSON.parse(clienteData);
                 isEmpleado = cliente && cliente.rol_id === 2;
-                console.log("Resultado del respaldo sessionStorage:", { isEmpleado, cliente });
+            }
+        }
+
+        // Obtener la dirección de entrega
+        let direccionEntrega = t.storePickup || 'Recolha na Loja';
+        if (pedido.tipoEntregaPedidoId === 2) {
+            if (pedido.direccion && pedido.direccion.nombreVia !== 'Información no disponible' && pedido.direccion.nombreVia !== 'Error al cargar dirección') {
+                direccionEntrega = `
+                    ${pedido.direccion.nombreVia || ''} ${pedido.direccion.dirVia || ''}<br>
+                    ${pedido.direccion.freguesiaNombre || ''}${pedido.direccion.freguesiaNombre && pedido.direccion.concelhoNombre ? ', ' : ''}${pedido.direccion.concelhoNombre || ''}${pedido.direccion.concelhoNombre && pedido.direccion.distritoNombre ? ', ' : ''}${pedido.direccion.distritoNombre || ''}
+                `.trim();
+            } else {
+                console.warn(`No se encontró una dirección válida para el pedido ID ${pedido.id}`);
+                direccionEntrega = t.addressNotAvailable || 'Endereço não disponível';
             }
         }
 
@@ -216,12 +221,12 @@ const PedidoView = {
                     <div class="order-detail-info">
                         <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                         <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
-                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
-                            pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
-                            pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
-                            pedido.tipoEntregaPedidoId || 'N/A'
-                        }</p>
-                        <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
+                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'Entrega ao domicílio') :
+                    pedido.tipoEntrega?.nombre || pedido.tipoEntregaPedidoId || 'N/A'
+            }</p>
+                        <p class="order-item"><i class="fas fa-home me-2"></i><strong data-i18n="todos.address">${t.address || 'Endereço de Entrega'}:</strong> ${direccionEntrega}</p>
+                        <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="todos.total">${t.total || 'Total'}:</strong> ${pedido?.precio?.toFixed(2) || '0.00'} €</p>
                     </div>
                     ${isEmpleado ? `
                         <div class="mb-4">
@@ -233,6 +238,8 @@ const PedidoView = {
                                     <option value="2" ${pedido.tipoEstadoPedidoId === 2 ? 'selected' : ''} data-i18n="pedidos.processing">${t.processing || 'Processando'}</option>
                                     <option value="3" ${pedido.tipoEstadoPedidoId === 3 ? 'selected' : ''} data-i18n="pedidos.shipped">${t.shipped || 'Enviado'}</option>
                                     <option value="4" ${pedido.tipoEstadoPedidoId === 4 ? 'selected' : ''} data-i18n="pedidos.delivered">${t.delivered || 'Entregue'}</option>
+                                    <option value="5" ${pedido.tipoEstadoPedidoId === 5 ? 'selected' : ''} data-i18n="pedidos.cancelled">${t.cancelled || 'Cancelado'}</option>
+                                    <option value="6" ${pedido.tipoEstado?.Id === 6 ? 'selected' : ''} data-i18n="pedidos.returned">${t.returned || 'Devolvido'}</option>
                                 </select>
                             </div>
                             <button class="btn btn-primary btn-sm mt-2 btn-cambiar-estado" data-pedido-id="${pedido.id}" data-i18n="pedidos.updateStatus">${t.updateStatus || 'Atualizar Estado'}</button>
@@ -248,11 +255,11 @@ const PedidoView = {
                                         <h6 class="order-item-title mb-1">
                                             <a href="#" class="producto-link" data-producto-id="${item.productoId}">${item.nombreProducto || 'N/A'}</a>
                                         </h6>
-                                        <p class="order-item-info mb-0">${item.unidades || 0} x ${item.precio != null ? item.precio.toFixed(2) : '0.00'} €</p>
+                                        <p class="order-item-info mb-0">${item.unidades || 0} x ${item?.precio?.toFixed(2) || '0.00'} €</p>
                                     </div>
                                 </div>
                             </div>
-                        `).join('') : `<div class="alert alert-info" data-i18n="pedidos.noOrders">${t.noOrders || 'Nenhum item encontrado.'}</div>`}
+                        `).join('') : `<div class="alert alert-info" data-i18n="pedidos.noItems">${t.noItems || 'Nenhum item encontrado.'}</div>`}
                     </div>
                     <div class="text-center mt-4">
                         <a href="${backUrl}" class="btn btn-outline-secondary btn-back" data-back-type="${isEmpleado ? 'search' : 'orders'}">${backText}</a>
@@ -349,12 +356,11 @@ const PedidoView = {
                                     <div class="order-details">
                                         <p class="order-item"><i class="fas fa-calendar-alt me-2"></i><strong data-i18n="pedidos.dateFrom">${t.dateFrom || 'Data'}:</strong> ${pedido.fechaRealizacion ? new Date(pedido.fechaRealizacion).toLocaleDateString() : 'N/A'}</p>
                                         <p class="order-item"><i class="fas fa-info-circle me-2"></i><strong data-i18n="pedidos.status">${t.status || 'Estado'}:</strong> ${pedido.tipoEstadoPedidoNombre || 'N/A'}</p>
-                                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${
-                                            pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
-                                            pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'A Domicilio') :
-                                            pedido.tipoEntregaPedidoId || 'N/A'
-                                        }</p>
-                                        <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido.precio != null ? pedido.precio.toFixed(2) : '0.00'} €</p>
+                                        <p class="order-item"><i class="fas fa-truck me-2"></i><strong data-i18n="pedidos.deliveryType">${t.deliveryType || 'Tipo de Entrega'}:</strong> ${pedido.tipoEntregaPedidoId === 1 ? (t.storePickup || 'Recolha na Loja') :
+                    pedido.tipoEntregaPedidoId === 2 ? (t.homeDelivery || 'Entrega ao domicílio') :
+                        pedido.tipoEntrega?.nombre || pedido.tipoEntregaId || 'N/A'
+                }</p>
+                                        <p class="order-item"><i class="fas fa-euro-sign me-2"></i><strong data-i18n="pedidos.total">${t.total || 'Total'}:</strong> ${pedido?.precio?.toFixed(2) || '0.00'} €</p>
                                         <p class="order-item"><i class="fas fa-shopping-cart me-2"></i><strong data-i18n="pedidos.items">${t.items || 'Itens'}:</strong> ${pedido.lineas ? pedido.lineas.length : '0'}</p>
                                     </div>
                                     <div class="order-actions mt-4 text-center">

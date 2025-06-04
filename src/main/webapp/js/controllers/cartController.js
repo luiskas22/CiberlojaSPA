@@ -39,6 +39,15 @@ const CartController = {
             } else {
                 console.warn("Ver Produtos button not found. Ensure it exists in the DOM.");
             }
+
+            // Toggle address dropdown visibility based on delivery type
+            const deliveryTypeSelect = document.getElementById('delivery-type');
+            const deliveryAddressGroup = document.querySelector('.delivery-address-group');
+            if (deliveryTypeSelect && deliveryAddressGroup) {
+                deliveryTypeSelect.addEventListener('change', () => {
+                    deliveryAddressGroup.style.display = deliveryTypeSelect.value === '2' ? 'block' : 'none';
+                });
+            }
         }, 100);
 
         // Use a single event handler to avoid duplicates
@@ -116,7 +125,9 @@ const CartController = {
                 }
             }
 
-            await CartView.renderCart("pro-inventario", cart, this.currentLang);
+            // Pass addresses from sessionStorage
+            const addresses = clienteData.direcciones || [];
+            await CartView.renderCart("pro-inventario", cart, addresses, this.currentLang);
         } catch (error) {
             console.error("Error loading cart:", error);
             CartView.renderError("pro-inventario", error.message || Translations[this.currentLang].alerts.error_message || "Error loading cart.", this.currentLang);
@@ -140,7 +151,9 @@ const CartController = {
                 }
             }
 
-            await CartView.renderCart("pro-inventario", cart, this.currentLang);
+            // Pass addresses from sessionStorage
+            const addresses = clienteData.direcciones || [];
+            await CartView.renderCart("pro-inventario", cart, addresses, this.currentLang);
             alert(Translations[this.currentLang].alerts.productRemoved || "✅ Item removed from cart!");
         } catch (error) {
             console.error("Error removing from cart:", error);
@@ -165,7 +178,9 @@ const CartController = {
                 }
             }
 
-            await CartView.renderCart("pro-inventario", cart, this.currentLang);
+            // Pass addresses from sessionStorage
+            const addresses = clienteData.direcciones || [];
+            await CartView.renderCart("pro-inventario", cart, addresses, this.currentLang);
         } catch (error) {
             console.error("Error updating quantity:", error);
             CartView.renderError("pro-inventario", error.message || Translations[this.currentLang].alerts.error_message || "Error updating cart quantity.", this.currentLang);
@@ -177,7 +192,10 @@ const CartController = {
         try {
             const clienteData = this.getStoredClienteData();
             await CartService.clearCart(clienteData.id);
-            await CartView.renderCart("pro-inventario", { items: [], total: 0 }, this.currentLang);
+
+            // Pass addresses from sessionStorage
+            const addresses = clienteData.direcciones || [];
+            await CartView.renderCart("pro-inventario", { items: [], total: 0 }, addresses, this.currentLang);
             alert(Translations[this.currentLang].alerts.cartCleared || "✅ Cart cleared!");
         } catch (error) {
             console.error("Error clearing cart:", error);
@@ -207,6 +225,16 @@ const CartController = {
                 throw new Error(Translations[this.currentLang].alerts.invalidDeliveryType || "Invalid delivery type selected.");
             }
 
+            // Get selected address for home delivery
+            let direccionId = null;
+            if (tipoEntregaId === 2) {
+                const deliveryAddressSelect = document.getElementById('delivery-address');
+                if (!deliveryAddressSelect || !deliveryAddressSelect.value) {
+                    throw new Error(Translations[this.currentLang].alerts.invalidAddress || "Por favor, selecione um endereço de entrega válido.");
+                }
+                direccionId = parseInt(deliveryAddressSelect.value);
+            }
+
             const pedidoData = {
                 clienteId: clienteData.id,
                 lineas: cart.items.map(item => ({
@@ -219,7 +247,8 @@ const CartController = {
                 fechaRealizacion: new Date().toISOString(),
                 tipoEstadoPedidoId: 1,
                 tipoEstadoNombre: "Pendente",
-                tipoEntregaPedidoId: tipoEntregaId
+                tipoEntregaPedidoId: tipoEntregaId,
+                direccionId: direccionId
             };
 
             console.log("Dados enviados ao backend:", JSON.stringify(pedidoData, null, 2));

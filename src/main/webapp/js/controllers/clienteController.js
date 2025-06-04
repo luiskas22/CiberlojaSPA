@@ -134,7 +134,6 @@ const ClienteController = {
     },
 
     async showChangePasswordForm() {
-        // Placeholder for change password form (not implemented)
         console.log("Mostrando formulario para cambiar contraseña...");
         ClienteView.renderError('pro-inventario', Translations[this.currentLang]?.cliente?.feature_not_implemented || 'Funcionalidad de cambio de contraseña no implementada.', this.currentLang);
     },

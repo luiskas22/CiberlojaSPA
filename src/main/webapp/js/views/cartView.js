@@ -1,7 +1,7 @@
 import Translations from '../resources/translations.js'; // Adjust path as needed
 
 const CartView = {
-    renderCart(containerId, cart, lang = 'pt') {
+    renderCart(containerId, cart, addresses = [], lang = 'pt') {
         console.log('Rendering cart:', cart);
         const container = document.getElementById(containerId);
         if (!container) {
@@ -36,7 +36,20 @@ const CartView = {
                     <label for="delivery-type" class="form-label" data-i18n="cart.deliveryType">${t.deliveryType || 'Tipo de Entrega'}</label>
                     <select id="delivery-type" class="form-select">
                         <option value="1" data-i18n="cart.storePickup">${t.storePickup || 'Recolha na Loja'}</option>
-                        <option value="2" data-i18n="cart.homeDelivery">${t.homeDelivery || 'A Domicilio'}</option>
+                        <option value="2" data-i18n="cart.homeDelivery">${t.homeDelivery || 'Entrega ao domicílio'}</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3 delivery-address-group" style="display: none;">
+                    <label for="delivery-address" class="form-label" data-i18n="cart.deliveryAddress">${t.deliveryAddress || 'Endereço de Entrega'}</label>
+                    <select id="delivery-address" class="form-select">
+                        ${addresses.length === 0 ? `
+                            <option value="" disabled selected>${t.noAddresses || 'Nenhum endereço cadastrado'}</option>
+                        ` : `
+                            <option value="" disabled selected>${t.selectAddress || 'Selecione um endereço'}</option>
+                            ${addresses.map(address => `
+                                <option value="${address.id}">${address.nombreVia}, ${address.dirVia}, ${address.freguesiaNombre}, ${address.concelhoNombre}</option>
+                            `).join('')}
+                        `}
                     </select>
                 </div>
                 <div class="cart-actions text-center mt-4">

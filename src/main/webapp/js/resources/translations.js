@@ -54,6 +54,9 @@ const translations = {
             processing: "Procesando",
             shipped: "Enviado",
             delivered: "Entregado",
+            cancelled: "Cancelado",
+            returned: "Devuelto",
+            deliveryType: "Tipo de Entrega",
         },
         footer: {
             contact: {
@@ -190,6 +193,8 @@ const translations = {
                 searchBtn: "Buscar",
                 clearBtn: "Limpiar",
                 resultsPlaceholder: "Resultados de la búsqueda aparecerán aquí...",
+                familia: "Familia:",
+                stockAvailable: "Disponible",
             },
             create: {
                 title: "Añadir Nuevo Producto",
@@ -447,6 +452,9 @@ const translations = {
             processing: "Processando",
             shipped: "Enviado",
             delivered: "Entregue",
+            cancelled: "Cancelado",
+            returned: "Devolvido",
+            deliveryType: "Tipo de Entrega",
         },
         footer: {
             contact: {
@@ -585,6 +593,8 @@ const translations = {
                 searchBtn: "Buscar",
                 clearBtn: "Limpar",
                 resultsPlaceholder: "Os resultados da busca aparecerão aqui...",
+                familia: "Família:",
+                stockAvailable: "Disponível",
             },
             create: {
                 title: "Adicionar Novo Produto",
@@ -842,6 +852,9 @@ const translations = {
             processing: "Processing",
             shipped: "Shipped",
             delivered: "Delivered",
+            cancelled: "Cancelled",
+            returned: "Returned",
+            deliveryType: "Delivery Type",
         },
         cart: {
             title: "Your Shopping Cart",
@@ -996,6 +1009,8 @@ const translations = {
                 searchBtn: "Search",
                 clearBtn: "Clear",
                 resultsPlaceholder: "Search results will appear here...",
+                familia: "Family:",
+                stockAvailable: "Available",
             },
 
             create: {

@@ -3,6 +3,7 @@ import PedidoService from "../services/pedidoService.js";
 import ProductoView from "../views/productoView.js";
 import ProductoService from "../services/productoService.js";
 import FileService from "../services/fileService.js";
+import DireccionService from "../services/direccionService.js"; // Añadir importación
 
 function debounce(func, delay) {
     let timeoutId;
@@ -18,8 +19,8 @@ const PedidoController = {
     totalItems: 0,
     totalPages: 0,
     previousResults: [],
-    lastCriteria: null, // Add storage for last search criteria
-    imageCache: new Map(), // Add image cache
+    lastCriteria: null,
+    imageCache: new Map(),
 
     async getProductImages(productId) {
         if (this.imageCache.has(productId)) {
@@ -33,6 +34,99 @@ const PedidoController = {
             console.warn(`No se pudieron cargar las imágenes para el producto ${productId}:`, error);
             this.imageCache.set(productId, []);
             return [];
+        }
+    },
+
+    async loadOrderAddress(pedido) {
+        try {
+            console.log(`Cargando dirección para el pedido ${pedido.id}...`);
+
+            // Método 1: Si ya tenemos la dirección en el pedido
+            if (pedido.direccion) {
+                console.log("Dirección ya presente en el pedido:", pedido.direccion);
+                return;
+            }
+
+            // Método 2: Si tenemos direccionId, intentar obtener la dirección específica
+            if (pedido.direccionId) {
+                console.log(`Intentando cargar dirección con ID ${pedido.direccionId}`);
+                try {
+                    const response = await fetch(`http://192.168.99.40:8080/ciberloja-rest-api/api/direccion/find/${pedido.direccionId}`);
+                    if (response.ok) {
+                        const address = await response.json();
+                        pedido.direccion = {
+                            id: address.id,
+                            nombreVia: address.nombreVia || '',
+                            dirVia: address.dirVia || '',
+                            freguesiaNombre: address.freguesiaNombre || '',
+                            concelhoNombre: address.concelhoNombre || '',
+                            distritoNombre: address.distritoNombre || ''
+                        };
+                        console.log("Dirección encontrada en backend:", pedido.direccion);
+                        return;
+                    } else {
+                        console.warn(`Dirección con ID ${pedido.direccionId} no encontrada en el backend`);
+                    }
+                } catch (addressError) {
+                    console.warn("Error al cargar dirección por ID:", addressError);
+                }
+            }
+
+            // Método 3: Si tenemos clienteId, obtener direcciones del cliente desde el backend
+            if (pedido.clienteId) {
+                console.log(`Obteniendo direcciones del cliente ${pedido.clienteId} desde el backend`);
+                try {
+                    const addresses = await DireccionService.getAdresses(pedido.clienteId);
+                    if (addresses && addresses.length > 0) {
+                        // Usar la primera dirección o la marcada como predeterminada
+                        const defaultAddress = addresses.find(d => d.isDefault) || addresses[0];
+                        pedido.direccion = {
+                            id: defaultAddress.id,
+                            nombreVia: defaultAddress.nombreVia || '',
+                            dirVia: defaultAddress.dirVia || '',
+                            freguesiaNombre: defaultAddress.freguesiaNombre || '',
+                            concelhoNombre: defaultAddress.concelhoNombre || '',
+                            distritoNombre: defaultAddress.distritoNombre || ''
+                        };
+                        console.log("Dirección asignada desde el backend:", pedido.direccion);
+                        return;
+                    } else {
+                        console.warn(`No se encontraron direcciones para el cliente ${pedido.clienteId}`);
+                    }
+                } catch (clientError) {
+                    console.error("Error al obtener direcciones del cliente:", clientError);
+                }
+            }
+
+            // Método 4: Último recurso - asignar un placeholder
+            console.log("Asignando dirección placeholder para el pedido");
+            pedido.direccion = {
+                nombreVia: "Información no disponible",
+                dirVia: "",
+                freguesiaNombre: "",
+                concelhoNombre: "",
+                distritoNombre: ""
+            };
+        } catch (error) {
+            console.error(`Error general al cargar dirección del pedido ${pedido.id}:`, error);
+            pedido.direccion = {
+                nombreVia: "Error al cargar dirección",
+                dirVia: "",
+                freguesiaNombre: "",
+                concelhoNombre: "",
+                distritoNombre: ""
+            };
+        }
+    },
+
+    async loadAddressesForOrders(orders) {
+        if (!orders || !Array.isArray(orders)) return;
+
+        console.log(`Cargando direcciones para ${orders.length} pedidos...`);
+        for (const order of orders) {
+            if (order.tipoEntregaPedidoId === 2 && !order.direccion) {
+                await this.loadOrderAddress(order);
+            }
         }
     },
 
@@ -58,8 +152,6 @@ const PedidoController = {
             clearButton.hasListener = true;
         }
     },
-
-    // En pedidoController.js - Método handleDocumentClick
 
     handleDocumentClick(event) {
         const detalleTarget = event.target.closest(".btn-ver-detalle");
@@ -100,10 +192,8 @@ const PedidoController = {
             console.log("Botón de volver detectado, tipo:", backType);
 
             if (backType === 'search') {
-                // Para empleados: volver a la búsqueda
                 this.loadSearchForm();
             } else {
-                // Para clientes: volver a la lista de pedidos
                 this.loadPedidos();
             }
             return;
@@ -120,7 +210,6 @@ const PedidoController = {
         }
     },
 
-    // También agregar un método helper para verificar el rol
     isEmpleado() {
         if (window.App && window.App.isEmpleado) {
             return window.App.isEmpleado();
@@ -160,14 +249,30 @@ const PedidoController = {
             const result = await PedidoService.updatePedido(updatedPedido);
             console.log("Estado actualizado con éxito:", result);
 
+            if (result.lineas && result.lineas.length > 0) {
+                for (let linea of result.lineas) {
+                    try {
+                        const images = await this.getProductImages(linea.productoId);
+                        linea.imageSrc = images && images.length > 0
+                            ? `http://192.168.99.40:8080${images[0].url}`
+                            : './img/placeholder.png';
+                    } catch (imageError) {
+                        console.warn(`No se pudieron cargar las imágenes para el producto ${linea.productoId}:`, imageError);
+                        linea.imageSrc = './img/placeholder.png';
+                    }
+                }
+            }
+
+            await this.loadOrderAddress(result); // Cargar dirección después de actualizar
+
             const container = document.getElementById("pro-inventario");
             if (container) {
                 container.insertAdjacentHTML('afterbegin', `
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        Estado do pedido atualizado com sucesso!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `);
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    Estado do pedido atualizado com sucesso!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `);
             }
 
             PedidoView.renderPedidoDetalhe("pro-inventario", result);
@@ -214,7 +319,6 @@ const PedidoController = {
         setTimeout(() => {
             this.setupEvents();
             if (preserveState && this.previousResults.length > 0) {
-                // Restore previous search criteria
                 const criteria = {
                     id: document.getElementById("pedido-id"),
                     fechaDesde: document.getElementById("fecha-desde"),
@@ -227,7 +331,6 @@ const PedidoController = {
                     descripcion: document.getElementById("descripcion")
                 };
 
-                // Example: Restore values if they exist in the last search criteria
                 if (this.lastCriteria) {
                     if (criteria.id) criteria.id.value = this.lastCriteria.id || "";
                     if (criteria.fechaDesde) criteria.fechaDesde.value = this.lastCriteria.fechaDesde || "";
@@ -240,7 +343,6 @@ const PedidoController = {
                     if (criteria.descripcion) criteria.descripcion.value = this.lastCriteria.descripcion || "";
                 }
 
-                // Re-render previous results
                 PedidoView.renderSearchResults(
                     "search-results",
                     this.previousResults,
@@ -249,11 +351,11 @@ const PedidoController = {
                     this.totalItems
                 );
             } else {
-                // Reset form and trigger a fresh search
                 this.clearSearchForm();
             }
         }, 100);
     },
+
     async handleSearch(page = 1) {
         console.log(`Procesando búsqueda de pedidos (página ${page})...`);
         this.currentPage = page;
@@ -273,7 +375,6 @@ const PedidoController = {
                 size: this.itemsPerPage
             };
 
-            // Store criteria for restoration
             this.lastCriteria = { ...criteria };
 
             const pedidoCriteria = {
@@ -294,6 +395,7 @@ const PedidoController = {
             console.log("Respuesta del servicio:", response);
 
             if (response && Array.isArray(response.page)) {
+                await this.loadAddressesForOrders(response.page); // Cargar direcciones
                 this.previousResults = response.page;
                 this.totalItems = response.totalElements || response.page.length;
                 this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
@@ -306,6 +408,7 @@ const PedidoController = {
                     this.totalItems
                 );
             } else if (Array.isArray(response)) {
+                await this.loadAddressesForOrders(response);
                 this.previousResults = response;
                 this.totalItems = response.length;
                 this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
@@ -353,8 +456,8 @@ const PedidoController = {
             }
 
             const pedidos = await PedidoService.findPedidosByClienteId(clienteData.id);
-
             if (pedidos && pedidos.length > 0) {
+                await this.loadAddressesForOrders(pedidos); // Cargar direcciones
                 PedidoView.renderPedidos("pro-inventario", pedidos);
             } else {
                 PedidoView.renderError("pro-inventario", "No se encontraron pedidos para este usuario.");
@@ -373,7 +476,8 @@ const PedidoController = {
                 throw new Error("Pedido no encontrado");
             }
 
-            // Pre-cargar imágenes para cada producto en las líneas del pedido
+            await this.loadOrderAddress(pedido); // Cargar dirección
+
             if (pedido.lineas && pedido.lineas.length > 0) {
                 for (let linea of pedido.lineas) {
                     try {
@@ -403,7 +507,6 @@ const PedidoController = {
             if (!producto) {
                 throw new Error("Producto no encontrado");
             }
-            // Pre-cargar imágenes para el producto
             producto.images = await this.getProductImages(productoId);
             ProductoView.renderProductoDetails(producto, "pro-inventario");
         } catch (error) {

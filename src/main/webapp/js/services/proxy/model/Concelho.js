@@ -16,37 +16,35 @@
 import ApiClient from '../ApiClient.js';
 
 /**
- * The Localidad model module.
- * @module model/Localidad
+ * The Concelho model module.
+ * @module model/Concelho
  * @version 1.0
  */
-export default class Localidad {
+export default class Concelho {
   /**
-   * Constructs a new <code>Localidad</code>.
-   * @alias module:model/Localidad
+   * Constructs a new <code>Concelho</code>.
+   * @alias module:model/Concelho
    * @class
    */
   constructor() {
   }
 
   /**
-   * Constructs a <code>Localidad</code> from a plain JavaScript object, optionally creating a new instance.
+   * Constructs a <code>Concelho</code> from a plain JavaScript object, optionally creating a new instance.
    * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
    * @param {Object} data The plain JavaScript object bearing properties of interest.
-   * @param {module:model/Localidad} obj Optional instance to populate.
-   * @return {module:model/Localidad} The populated <code>Localidad</code> instance.
+   * @param {module:model/Concelho} obj Optional instance to populate.
+   * @return {module:model/Concelho} The populated <code>Concelho</code> instance.
    */
   static constructFromObject(data, obj) {
     if (data) {
-      obj = obj || new Localidad();
+      obj = obj || new Concelho();
       if (data.hasOwnProperty('id'))
         obj.id = ApiClient.convertToType(data['id'], 'Number');
       if (data.hasOwnProperty('nombre'))
         obj.nombre = ApiClient.convertToType(data['nombre'], 'String');
-      if (data.hasOwnProperty('codigoPostal'))
-        obj.codigoPostal = ApiClient.convertToType(data['codigoPostal'], 'Number');
-      if (data.hasOwnProperty('provinciaId'))
-        obj.provinciaId = ApiClient.convertToType(data['provinciaId'], 'Number');
+      if (data.hasOwnProperty('distritoId'))
+        obj.distritoId = ApiClient.convertToType(data['distritoId'], 'Number');
     }
     return obj;
   }
@@ -55,20 +53,15 @@ export default class Localidad {
 /**
  * @member {Number} id
  */
-Localidad.prototype.id = undefined;
+Concelho.prototype.id = undefined;
 
 /**
  * @member {String} nombre
  */
-Localidad.prototype.nombre = undefined;
+Concelho.prototype.nombre = undefined;
 
 /**
- * @member {Number} codigoPostal
+ * @member {Number} distritoId
  */
-Localidad.prototype.codigoPostal = undefined;
-
-/**
- * @member {Number} provinciaId
- */
-Localidad.prototype.provinciaId = undefined;
+Concelho.prototype.distritoId = undefined;
 

@@ -49,14 +49,18 @@ export default class DireccionDTO {
         obj.clienteId = ApiClient.convertToType(data['clienteId'], 'Number');
       if (data.hasOwnProperty('empleadoId'))
         obj.empleadoId = ApiClient.convertToType(data['empleadoId'], 'Number');
-      if (data.hasOwnProperty('localidadId'))
-        obj.localidadId = ApiClient.convertToType(data['localidadId'], 'Number');
-      if (data.hasOwnProperty('localidadNombre'))
-        obj.localidadNombre = ApiClient.convertToType(data['localidadNombre'], 'String');
-      if (data.hasOwnProperty('provinciaId'))
-        obj.provinciaId = ApiClient.convertToType(data['provinciaId'], 'Number');
-      if (data.hasOwnProperty('provinciaNombre'))
-        obj.provinciaNombre = ApiClient.convertToType(data['provinciaNombre'], 'String');
+      if (data.hasOwnProperty('freguesiaId'))
+        obj.freguesiaId = ApiClient.convertToType(data['freguesiaId'], 'Number');
+      if (data.hasOwnProperty('freguesiaNombre'))
+        obj.freguesiaNombre = ApiClient.convertToType(data['freguesiaNombre'], 'String');
+      if (data.hasOwnProperty('concelhoId'))
+        obj.concelhoId = ApiClient.convertToType(data['concelhoId'], 'Number');
+      if (data.hasOwnProperty('concelhoNombre'))
+        obj.concelhoNombre = ApiClient.convertToType(data['concelhoNombre'], 'String');
+      if (data.hasOwnProperty('distritoId'))
+        obj.distritoId = ApiClient.convertToType(data['distritoId'], 'Number');
+      if (data.hasOwnProperty('distritoNombre'))
+        obj.distritoNombre = ApiClient.convertToType(data['distritoNombre'], 'String');
       if (data.hasOwnProperty('paisId'))
         obj.paisId = ApiClient.convertToType(data['paisId'], 'Number');
       if (data.hasOwnProperty('paisNombre'))
@@ -92,24 +96,34 @@ DireccionDTO.prototype.clienteId = undefined;
 DireccionDTO.prototype.empleadoId = undefined;
 
 /**
- * @member {Number} localidadId
+ * @member {Number} freguesiaId
  */
-DireccionDTO.prototype.localidadId = undefined;
+DireccionDTO.prototype.freguesiaId = undefined;
 
 /**
- * @member {String} localidadNombre
+ * @member {String} freguesiaNombre
  */
-DireccionDTO.prototype.localidadNombre = undefined;
+DireccionDTO.prototype.freguesiaNombre = undefined;
 
 /**
- * @member {Number} provinciaId
+ * @member {Number} concelhoId
  */
-DireccionDTO.prototype.provinciaId = undefined;
+DireccionDTO.prototype.concelhoId = undefined;
 
 /**
- * @member {String} provinciaNombre
+ * @member {String} concelhoNombre
  */
-DireccionDTO.prototype.provinciaNombre = undefined;
+DireccionDTO.prototype.concelhoNombre = undefined;
+
+/**
+ * @member {Number} distritoId
+ */
+DireccionDTO.prototype.distritoId = undefined;
+
+/**
+ * @member {String} distritoNombre
+ */
+DireccionDTO.prototype.distritoNombre = undefined;
 
 /**
  * @member {Number} paisId

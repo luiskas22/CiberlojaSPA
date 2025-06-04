@@ -16,35 +16,35 @@
 import ApiClient from '../ApiClient.js';
 
 /**
- * The Provincia model module.
- * @module model/Provincia
+ * The Freguesia model module.
+ * @module model/Freguesia
  * @version 1.0
  */
-export default class Provincia {
+export default class Freguesia {
   /**
-   * Constructs a new <code>Provincia</code>.
-   * @alias module:model/Provincia
+   * Constructs a new <code>Freguesia</code>.
+   * @alias module:model/Freguesia
    * @class
    */
   constructor() {
   }
 
   /**
-   * Constructs a <code>Provincia</code> from a plain JavaScript object, optionally creating a new instance.
+   * Constructs a <code>Freguesia</code> from a plain JavaScript object, optionally creating a new instance.
    * Copies all relevant properties from <code>data</code> to <code>obj</code> if supplied or a new instance if not.
    * @param {Object} data The plain JavaScript object bearing properties of interest.
-   * @param {module:model/Provincia} obj Optional instance to populate.
-   * @return {module:model/Provincia} The populated <code>Provincia</code> instance.
+   * @param {module:model/Freguesia} obj Optional instance to populate.
+   * @return {module:model/Freguesia} The populated <code>Freguesia</code> instance.
    */
   static constructFromObject(data, obj) {
     if (data) {
-      obj = obj || new Provincia();
+      obj = obj || new Freguesia();
       if (data.hasOwnProperty('id'))
         obj.id = ApiClient.convertToType(data['id'], 'Number');
       if (data.hasOwnProperty('nombre'))
         obj.nombre = ApiClient.convertToType(data['nombre'], 'String');
-      if (data.hasOwnProperty('paisId'))
-        obj.paisId = ApiClient.convertToType(data['paisId'], 'Number');
+      if (data.hasOwnProperty('concelhoId'))
+        obj.concelhoId = ApiClient.convertToType(data['concelhoId'], 'Number');
     }
     return obj;
   }
@@ -53,15 +53,15 @@ export default class Provincia {
 /**
  * @member {Number} id
  */
-Provincia.prototype.id = undefined;
+Freguesia.prototype.id = undefined;
 
 /**
  * @member {String} nombre
  */
-Provincia.prototype.nombre = undefined;
+Freguesia.prototype.nombre = undefined;
 
 /**
- * @member {Number} paisId
+ * @member {Number} concelhoId
  */
-Provincia.prototype.paisId = undefined;
+Freguesia.prototype.concelhoId = undefined;
 
