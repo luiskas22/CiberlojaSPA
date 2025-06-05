@@ -125,6 +125,11 @@ const ProductoController = {
             if (response && Array.isArray(response.page)) {
                 let highlightedProducts = response.page;
 
+                // Filter products to only include those with stockDisponible > 0 and precio > 0
+                highlightedProducts = highlightedProducts.filter(p => 
+                    p.stockDisponible > 0 && p.precio != null && p.precio > 0
+                );
+
                 const imagePromises = highlightedProducts.map(p =>
                     FileService.getImagesByProductoId(p.id).catch(() => [])
                 );

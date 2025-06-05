@@ -115,10 +115,7 @@ const ClienteView = {
                                 <label for="telefono" class="form-label" data-i18n="cliente.phone">${t.phone || 'Teléfono'}</label>
                                 <input type="text" class="form-control" id="telefono" name="telefono" value="${cliente.telefono || ''}">
                             </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label" data-i18n="cliente.password">${t.password || 'Contraseña'}</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="${t.password_placeholder || 'Dejar en blanco si no desea cambiarla'}">
-                            </div>
+                            
                         </form>
                     </div>
                     <div class="modal-footer">

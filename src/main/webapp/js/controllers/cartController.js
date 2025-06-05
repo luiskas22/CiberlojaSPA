@@ -255,7 +255,6 @@ const CartController = {
             const pedido = await PedidoService.createPedido(pedidoData);
             await CartService.clearCart(clienteData.id);
             await CartView.renderCheckoutSuccess("pro-inventario", pedido, this.currentLang);
-            alert(`${Translations[this.currentLang].alerts.orderSuccess || "✅ Order placed successfully!"} ID do Pedido: ${pedido.id}`);
         } catch (error) {
             console.error("Error during checkout:", error);
             CartView.renderError("pro-inventario", error.message || Translations[this.currentLang].alerts.error_message || "Error processing checkout.", this.currentLang);

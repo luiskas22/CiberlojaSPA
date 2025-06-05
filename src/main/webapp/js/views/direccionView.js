@@ -21,11 +21,13 @@ const DireccionView = {
         <h2 class="address-title mb-4 text-center" data-i18n="direcciones.title">${t.title || 'Minhas Moradas'}</h2>
         ${direcciones.length > 0 ? `
           <div class="row justify-content-center">
-            ${direcciones.map(direccion => `
+            ${direcciones.map((direccion, index) => `
               <div class="col-md-6 mb-4">
                 <div class="card address-card h-100">
                   <div class="card-body p-4">
-                    <h5 class="card-title address-card-title mb-3" data-i18n="direcciones.address_title" data-i18n-values='{ "id": "${direccion.id}" }'>${t.address_title?.replace('{id}', direccion.id) || `Morada ${direccion.id}`}</h5>
+                    <h5 class="card-title address-card-title mb-3" data-i18n="direcciones.address_title" data-i18n-values='{ "id": "${index + 1}" }'>
+                      ${t.address_title?.replace('{id}', index + 1) || `Morada ${index + 1}`}
+                    </h5>
                     <div class="address-details">
                       <p class="address-item"><i class="fas fa-road me-2"></i><strong data-i18n="direcciones.street">${t.street || 'Rua'}:</strong> ${direccion.nombreVia || (t.not_provided || 'Não informado')}</p>
                       <p class="address-item"><i class="fas fa-hashtag me-2"></i><strong data-i18n="direcciones.number">${t.number || 'Número'}:</strong> ${direccion.dirVia || '.'}</p>
@@ -58,7 +60,6 @@ const DireccionView = {
       </div>
     `;
   },
-
   renderCreateAddressModal(containerId, distritos = [], concelhos = [], freguesias = [], lang = 'pt') {
     const container = document.getElementById(containerId);
     if (!container) {

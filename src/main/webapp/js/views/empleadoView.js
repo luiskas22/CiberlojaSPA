@@ -1,7 +1,7 @@
 import Translations from '../resources/translations.js';
 
 const EmpleadoView = {
-    renderCreateEmpleadoForm(containerId, lang = 'pt', localidades = [], provincias = []) {
+    renderCreateEmpleadoForm(containerId, lang = 'pt', distritos = [], concelhos = [], freguesias = []) {
         const container = document.getElementById(containerId);
         if (!container) {
             console.error(`Contenedor no encontrado con ID: ${containerId}`);
@@ -15,13 +15,17 @@ const EmpleadoView = {
             console.warn('Translation not available:', e);
         }
 
-        const localidadOptions = localidades.length > 0
-            ? localidades.map(loc => `<option value="${loc.id}">${loc.nombre}</option>`).join('')
-            : `<option value="">${t.localidadPlaceholder || 'No hay localidades disponibles'}</option>`;
+        const distritoOptions = distritos.length > 0
+            ? distritos.map(dist => `<option value="${dist.id}">${dist.nombre}</option>`).join('')
+            : `<option value="">${t.distritoPlaceholder || 'No hay distritos disponibles'}</option>`;
 
-        const provinciaOptions = provincias.length > 0
-            ? provincias.map(prov => `<option value="${prov.id}">${prov.nombre}</option>`).join('')
-            : `<option value="">${t.provinciaPlaceholder || 'No hay provincias disponibles'}</option>`;
+        const concelhoOptions = concelhos.length > 0
+            ? concelhos.map(conc => `<option value="${conc.id}">${conc.nombre}</option>`).join('')
+            : `<option value="">${t.concelhoPlaceholder || 'No hay concelhos disponibles'}</option>`;
+
+        const freguesiaOptions = freguesias.length > 0
+            ? freguesias.map(freg => `<option value="${freg.id}">${freg.nombre}</option>`).join('')
+            : `<option value="">${t.freguesiaPlaceholder || 'No hay freguesias disponibles'}</option>`;
 
         container.innerHTML = `
             <div class="container empleado-container mt-5">
@@ -80,43 +84,51 @@ const EmpleadoView = {
                                     <input type="password" id="createPassword" name="password" class="form-control" required>
                                 </div>
                             </div>
-                        
                             <div class="col-md-12">
                                 <label for="createNombreVia" class="form-empleado" data-i18n="empleados.create.direccion">${t.direccion || 'Dirección'}</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                    <input type="text" id="createNombreVia" name="direccion[nombreVia]" class="form-control" placeholder="${t.direccionPlaceholder || 'Ejemplo: Calle Real'}" required>
+                                    <input type="text" id="createNombreVia" name="direccion[nombreVia]" class="form-control" placeholder="${t.direccionPlaceholder || 'Ejemplo: Rua Principal'}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="createDirVia" class="form-empleado" data-i18n="empleados.create.dirVia">${t.dirVia || 'Número'}</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
-                                    <input type="text" id="createDirVia" name="direccion[dirVia]" class="form-control" placeholder="${t.dirViaPlaceholder || 'Ejemplo: 8, 2ºD'}" required>
+                                    <input type="text" id="createDirVia" name="direccion[dirVia]" class="form-control" placeholder="${t.dirViaPlaceholder || 'Ejemplo: 123, 2ºD'}" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="createProvinciaId" class="form-empleado" data-i18n="empleados.create.provincia">${t.provincia || 'Provincia'}</label>
+                                <label for="createDistritoId" class="form-empleado" data-i18n="empleados.create.distrito">${t.distrito || 'Distrito'}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-signs"></i></span>
+                                    <select id="createDistritoId" name="direccion[distritoId]" class="form-select" required>
+                                        <option value="" data-i18n="empleados.create.selectDistrito">${t.selectDistrito || 'Seleccione un distrito'}</option>
+                                        ${distritoOptions}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="createConcelhoId" class="form-empleado" data-i18n="empleados.create.concelho">${t.concelho || 'Concelho'}</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-map"></i></span>
-                                    <select id="createProvinciaId" name="direccion[provinciaId]" class="form-select" required>
-                                        <option value="" data-i18n="empleados.create.selectProvincia">${t.selectProvincia || 'Seleccione una provincia'}</option>
-                                        ${provinciaOptions}
+                                    <select id="createConcelhoId" name="direccion[concelhoId]" class="form-select" required>
+                                        <option value="" data-i18n="empleados.create.selectConcelho">${t.selectConcelho || 'Seleccione un concelho'}</option>
+                                        ${concelhoOptions}
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="createLocalidadId" class="form-empleado" data-i18n="empleados.create.localidad">${t.localidad || 'Ciudad'}</label>
+                                <label for="createFreguesiaId" class="form-empleado" data-i18n="empleados.create.freguesia">${t.freguesia || 'Freguesia'}</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-city"></i></span>
-                                    <select id="createLocalidadId" name="direccion[localidadId]" class="form-select" required>
-                                        <option value="" data-i18n="empleados.create.selectLocalidad">${t.selectLocalidad || 'Seleccione una localidad'}</option>
-                                        ${localidadOptions}
+                                    <select id="createFreguesiaId" name="direccion[freguesiaId]" class="form-select" required>
+                                        <option value="" data-i18n="empleados.create.selectFreguesia">${t.selectFreguesia || 'Seleccione una freguesia'}</option>
+                                        ${freguesiaOptions}
                                     </select>
                                 </div>
                             </div>
-                            
-                            
+                           
                         </div>
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-success px-4 py-2" data-i18n="empleados.create.saveBtn">

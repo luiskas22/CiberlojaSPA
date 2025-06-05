@@ -236,6 +236,7 @@ const PedidoController = {
             }
 
             const pedido = await PedidoService.findById(pedidoId);
+            console.log("Pedido encontrado:", pedido);
             if (!pedido) {
                 throw new Error("Pedido no encontrado");
             }
@@ -243,27 +244,33 @@ const PedidoController = {
             const updatedPedido = {
                 ...pedido,
                 tipoEstadoPedidoId: newStatusId,
-                tipoEstadoPedidoNombre: selectElement.options[selectElement.selectedIndex].text
+                tipoEstadoPedidoNombre: selectElement.options[selectElement.selectedIndex].text,
+                direccionId: pedido.direccionId || null
             };
 
             const result = await PedidoService.updatePedido(updatedPedido);
-            console.log("Estado actualizado con éxito:", result);
+            console.log("Estado actualizado con éxito:", JSON.stringify(result, null, 2));
 
             if (result.lineas && result.lineas.length > 0) {
+                console.log("Before image assignment:", JSON.stringify(result.lineas, null, 2));
                 for (let linea of result.lineas) {
                     try {
                         const images = await this.getProductImages(linea.productoId);
                         linea.imageSrc = images && images.length > 0
                             ? `http://192.168.99.40:8080${images[0].url}`
                             : './img/placeholder.png';
+                        console.log(`Assigned imageSrc for productoId ${linea.productoId}:`, linea.imageSrc);
                     } catch (imageError) {
                         console.warn(`No se pudieron cargar las imágenes para el producto ${linea.productoId}:`, imageError);
                         linea.imageSrc = './img/placeholder.png';
                     }
                 }
+                console.log("After image assignment:", JSON.stringify(result.lineas, null, 2));
+            } else {
+                console.warn("No lineas found in result:", result);
             }
 
-            await this.loadOrderAddress(result); // Cargar dirección después de actualizar
+            await this.loadOrderAddress(result);
 
             const container = document.getElementById("pro-inventario");
             if (container) {

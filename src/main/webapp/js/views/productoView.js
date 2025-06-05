@@ -354,9 +354,7 @@ const ProductoView = {
                     <button type="submit" class="btn btn-primary" data-i18n="productos.details.saveBtn">
                         <i class="bi bi-save me-2"></i>${t.saveBtn}
                     </button>
-                    <button type="button" id="deleteProduct" class="btn btn-danger" data-id="${producto.id || ''}" data-i18n="productos.details.deleteBtn">
-                        <i class="bi bi-trash me-2"></i>${t.deleteBtn}
-                    </button>
+                    
                 </div>
             </form>
         `;

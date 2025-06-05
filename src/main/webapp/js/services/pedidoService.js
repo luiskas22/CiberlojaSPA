@@ -10,17 +10,15 @@ const defaultApi = new DefaultApi(apiClient);
 const PedidoService = {
 	async findById(id) {
 		try {
-			const data = await new Promise((resolve, reject) => {
-				defaultApi.findPedidoById(id, (error, data) => {
-					if (error) {
-						console.error('Error al buscar pedido ' + id, error);
-						reject(error);
-					} else {
-						console.log('Pedido ' + id + ' encontrado.');
-						resolve(data);
-					}
-				});
+			const response = await fetch(`http://192.168.99.40:8080/ciberloja-rest-api/api/pedido/${id}`, {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' }
 			});
+			if (!response.ok) {
+				throw new Error(`Error al buscar pedido ${id}: ${response.status}`);
+			}
+			const data = await response.json();
+			console.log('Pedido encontrado (fetch):', data);
 			return data;
 		} catch (error) {
 			throw new Error(`Error al buscar el pedido con ID ${id}: ${error.message}`);
@@ -107,10 +105,29 @@ const PedidoService = {
 		try {
 			console.log("Enviando solicitud PUT con datos:", JSON.stringify(pedido, null, 2));
 
-			// Verificar que el pedido tenga los campos obligatorios
+			// Verificar campos obligatorios
 			if (!pedido || !pedido.id || !pedido.clienteId || !pedido.tipoEstadoPedidoId) {
 				throw new Error("El pedido debe contener id, clienteId y tipoEstadoPedidoId válidos");
 			}
+
+			// Crear payload limpio
+			const payload = {
+				id: pedido.id,
+				fechaRealizacion: pedido.fechaRealizacion,
+				precio: pedido.precio,
+				clienteId: pedido.clienteId,
+				tipoEstadoPedidoId: pedido.tipoEstadoPedidoId,
+				tipoEntregaPedidoId: pedido.tipoEntregaPedidoId,
+				direccionId: pedido.direccionId || null, // Incluir direccionId si existe
+				lineas: pedido.lineas.map(linea => ({
+					id: linea.id,
+					precio: linea.precio,
+					nombreProducto: linea.nombreProducto,
+					productoId: linea.productoId,
+					pedidoId: linea.pedidoId,
+					unidades: linea.unidades
+				}))
+			};
 
 			const response = await fetch(`http://192.168.99.40:8080/ciberloja-rest-api/api/pedido/update`, {
 				method: 'PUT',
@@ -118,7 +135,7 @@ const PedidoService = {
 					'Content-Type': 'application/json',
 					'Accept': 'application/json'
 				},
-				body: JSON.stringify(pedido),
+				body: JSON.stringify(payload)
 			});
 
 			if (!response.ok) {
@@ -141,9 +158,9 @@ const PedidoService = {
 			return data;
 		} catch (error) {
 			console.error("Error al actualizar el pedido:", error);
-			throw error; // Propagar el error para manejarlo en el controlador
+			throw error;
 		}
-	},
+	}
 };
 
 export default PedidoService;

@@ -7,8 +7,9 @@ const EmpleadoController = {
     init(action, lang = 'pt') {
         console.log(`EmpleadoController.init(${action}, ${lang})...`);
         this.currentLang = lang;
-        this.localidades = []; // Cache localities
-        this.provincias = []; // Cache provinces
+        this.distritos = []; // Cache districts
+        this.concelhos = []; // Cache municipalities
+        this.freguesias = []; // Cache parishes
         if (action === "create") {
             this.renderCreateForm();
             this.setupEvents();
@@ -24,14 +25,10 @@ const EmpleadoController = {
 
     async renderCreateForm() {
         try {
-            const [localidades, provincias] = await Promise.all([
-                DireccionService.getLocalidades(),
-                DireccionService.getProvincias()
-            ]);
-            this.localidades = localidades; // Cache localities
-            this.provincias = provincias; // Cache provinces
-            EmpleadoView.renderCreateEmpleadoForm('pro-inventario', this.currentLang, localidades, provincias);
-            this.setupProvinceChangeListener(); // Set up listener after rendering
+            const distritos = await DireccionService.getDistritos();
+            this.distritos = distritos; // Cache districts
+            EmpleadoView.renderCreateEmpleadoForm('pro-inventario', this.currentLang, distritos, [], []);
+            this.setupAddressChangeListeners(); // Set up listeners after rendering
         } catch (error) {
             console.error('Error rendering empleado form:', error);
             EmpleadoView.renderError('pro-inventario', null, this.currentLang);
@@ -56,34 +53,54 @@ const EmpleadoController = {
         });
     },
 
-    setupProvinceChangeListener() {
-        const provinciaSelect = document.getElementById('createProvinciaId');
-        const localidadSelect = document.getElementById('createLocalidadId');
+    setupAddressChangeListeners() {
+        const distritoSelect = document.getElementById('createDistritoId');
+        const concelhoSelect = document.getElementById('createConcelhoId');
+        const freguesiaSelect = document.getElementById('createFreguesiaId');
 
-        if (!provinciaSelect || !localidadSelect) {
-            console.warn('Province or locality select not found');
+        if (!distritoSelect || !concelhoSelect || !freguesiaSelect) {
+            console.warn('District, concelho, or freguesia select not found');
             return;
         }
 
-        provinciaSelect.addEventListener('change', () => {
-            const provinciaId = provinciaSelect.value;
-            localidadSelect.innerHTML = `<option value="" data-i18n="empleados.create.selectLocalidad">${Translations[this.currentLang]?.empleados?.create?.selectLocalidad || 'Seleccione una localidad'}</option>`;
+        distritoSelect.addEventListener('change', async () => {
+            const distritoId = distritoSelect.value;
+            concelhoSelect.innerHTML = `<option value="" data-i18n="empleados.create.selectConcelho">${Translations[this.currentLang]?.empleados?.create?.selectConcelho || 'Seleccione un concelho'}</option>`;
+            freguesiaSelect.innerHTML = `<option value="" data-i18n="empleados.create.selectFreguesia">${Translations[this.currentLang]?.empleados?.create?.selectFreguesia || 'Seleccione una freguesia'}</option>`;
 
-            if (provinciaId) {
-                const filteredLocalidades = this.localidades.filter(loc => loc.provinciaId == provinciaId);
-                filteredLocalidades.forEach(loc => {
-                    const option = document.createElement('option');
-                    option.value = loc.id;
-                    option.textContent = loc.nombre;
-                    localidadSelect.appendChild(option);
-                });
-            } else {
-                this.localidades.forEach(loc => {
-                    const option = document.createElement('option');
-                    option.value = loc.id;
-                    option.textContent = loc.nombre;
-                    localidadSelect.appendChild(option);
-                });
+            if (distritoId) {
+                try {
+                    const concelhos = await DireccionService.getConcelhos(distritoId);
+                    this.concelhos = concelhos; // Cache concelhos
+                    concelhos.forEach(conc => {
+                        const option = document.createElement('option');
+                        option.value = conc.id;
+                        option.textContent = conc.nombre;
+                        concelhoSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error fetching concelhos:', error);
+                }
+            }
+        });
+
+        concelhoSelect.addEventListener('change', async () => {
+            const concelhoId = concelhoSelect.value;
+            freguesiaSelect.innerHTML = `<option value="" data-i18n="empleados.create.selectFreguesia">${Translations[this.currentLang]?.empleados?.create?.selectFreguesia || 'Seleccione una freguesia'}</option>`;
+
+            if (concelhoId) {
+                try {
+                    const freguesias = await DireccionService.getFreguesias(concelhoId);
+                    this.freguesias = freguesias; // Cache freguesias
+                    freguesias.forEach(freg => {
+                        const option = document.createElement('option');
+                        option.value = freg.id;
+                        option.textContent = freg.nombre;
+                        freguesiaSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error fetching freguesias:', error);
+                }
             }
         });
     },
@@ -104,12 +121,11 @@ const EmpleadoController = {
         const telefono = formData.get('telefono');
         const email = formData.get('email');
         const password = formData.get('password');
-        const tipoEmpleadoId = formData.get('tipo_empleado_id');
-        const rolId = formData.get('rol_id');
-        const localidadId = formData.get('direccion[localidadId]');
-        const provinciaId = formData.get('direccion[provinciaId]');
         const nombreVia = formData.get('direccion[nombreVia]');
         const dirVia = formData.get('direccion[dirVia]');
+        const distritoId = formData.get('direccion[distritoId]');
+        const concelhoId = formData.get('direccion[concelhoId]');
+        const freguesiaId = formData.get('direccion[freguesiaId]');
         const paisNombre = formData.get('direccion[paisNombre]');
 
         if (!nombre || nombre.trim() === '') {
@@ -120,10 +136,15 @@ const EmpleadoController = {
             EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.apellido1_required || 'El primer apellido es obligatorio.', this.currentLang);
             return;
         }
-        if (!dniNie || !/^[0-9]{8}[A-Z]$|^[XYZ][0-9]{7}[A-Z]$/.test(dniNie.trim())) {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.dniNie_invalid || 'El DNI/NIE debe tener un formato válido (8 dígitos + letra o X/Y/Z + 7 dígitos + letra).', this.currentLang);
+        if (!nif || !/^[0-9]{9}$/.test(nif.trim())) {
+            EmpleadoView.renderError(
+                'pro-inventario',
+                Translations[this.currentLang]?.empleados?.nif_invalid || 'El NIF debe tener 9 dígitos numéricos.',
+                this.currentLang
+            );
             return;
         }
+
         if (!telefono || !/^\+?\d{9,15}$/.test(telefono.trim())) {
             EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.telefono_invalid || 'El teléfono debe contener entre 9 y 15 dígitos.', this.currentLang);
             return;
@@ -136,14 +157,6 @@ const EmpleadoController = {
             EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.password_invalid || 'La contraseña debe tener al menos 6 caracteres.', this.currentLang);
             return;
         }
-        if (!tipoEmpleadoId) {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.tipoEmpleado_required || 'Seleccione un tipo de empleado.', this.currentLang);
-            return;
-        }
-        if (!rolId) {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.rol_required || 'Seleccione un rol.', this.currentLang);
-            return;
-        }
         if (!nombreVia || nombreVia.trim() === '') {
             EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.direccion_required || 'La calle es obligatoria.', this.currentLang);
             return;
@@ -152,29 +165,33 @@ const EmpleadoController = {
             EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.dirVia_required || 'El número de la calle es obligatorio.', this.currentLang);
             return;
         }
-        if (!localidadId) {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.localidad_required || 'La localidad es obligatoria.', this.currentLang);
+        if (!distritoId) {
+            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.distrito_required || 'El distrito es obligatorio.', this.currentLang);
             return;
         }
-        if (!provinciaId) {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.provincia_required || 'La provincia es obligatoria.', this.currentLang);
+        if (!concelhoId) {
+            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.concelho_required || 'El concelho es obligatorio.', this.currentLang);
             return;
         }
-        if (!paisNombre || paisNombre.trim() === '') {
-            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.pais_required || 'El país es obligatorio.', this.currentLang);
+        if (!freguesiaId) {
+            EmpleadoView.renderError('pro-inventario', Translations[this.currentLang]?.empleados?.freguesia_required || 'La freguesia es obligatoria.', this.currentLang);
             return;
         }
 
-        // Fetch locality and province names
-        let localidadNombre = '';
-        let provinciaNombre = '';
+
+        // Fetch names for distrito, concelho, and freguesia
+        let distritoNombre = '';
+        let concelhoNombre = '';
+        let freguesiaNombre = '';
         try {
-            const localidad = this.localidades.find(loc => loc.id === parseInt(localidadId));
-            const provincia = this.provincias.find(prov => prov.id === parseInt(provinciaId));
-            localidadNombre = localidad ? localidad.nombre : '';
-            provinciaNombre = provincia ? provincia.nombre : '';
+            const distritoSelect = document.getElementById('createDistritoId');
+            const concelhoSelect = document.getElementById('createConcelhoId');
+            const freguesiaSelect = document.getElementById('createFreguesiaId');
+            distritoNombre = distritoSelect.options[distritoSelect.selectedIndex].text;
+            concelhoNombre = concelhoSelect.options[concelhoSelect.selectedIndex].text;
+            freguesiaNombre = freguesiaSelect.options[freguesiaSelect.selectedIndex].text;
         } catch (error) {
-            console.warn('Could not fetch localidad/provincia names:', error);
+            console.warn('Could not fetch distrito/concelho/freguesia names:', error);
         }
 
         // Construct empleadoData to match server DTO
@@ -187,21 +204,23 @@ const EmpleadoController = {
             telefono: telefono.trim(),
             email: email.trim(),
             password: password.trim(),
-            tipo_empleado_id: parseInt(tipoEmpleadoId),
-            tipo_empleado_nombre: tipoEmpleadoId === '1' ? 'Administrador' : 'Vendedor', // Adjust based on server values
-            rol_id: parseInt(rolId),
+            tipo_empleado_id: 1, // Default to 'Administrador' (adjust as needed)
+            tipo_empleado_nombre: 'Administrador', // Adjust based on server values
+            rol_id: 2, // Default to employee role (adjust as needed)
             direccion: {
                 id: 0,
                 nombreVia: nombreVia.trim(),
                 dirVia: dirVia.trim(),
-                clienteId: 0,
+                clienteId: null,
                 empleadoId: 0,
-                localidadId: parseInt(localidadId),
-                localidadNombre: localidadNombre,
-                provinciaId: parseInt(provinciaId),
-                provinciaNombre: provinciaNombre,
-                paisId: 1,
-                paisNombre: paisNombre.trim()
+                freguesiaId: parseInt(freguesiaId),
+                freguesiaNombre: freguesiaNombre,
+                concelhoId: parseInt(concelhoId),
+                concelhoNombre: concelhoNombre,
+                distritoId: parseInt(distritoId),
+                distritoNombre: distritoNombre,
+                paisId: 2, // Portugal
+                paisNombre: "Portugal",
             }
         };
 

@@ -134,7 +134,7 @@ const SessionView = {
                     <div class="col-md-6">
                         <label for="registerDniNie" class="form-label" data-i18n="session.dni">${t.dni || 'DNI/NIE'}</label>
                         <input type="text" id="registerDniNie" class="form-control" 
-                               placeholder="${t.dni_placeholder || 'Insira o DNI ou NIE'}">
+                               placeholder="${t.dni_placeholder || 'Insira o NIF ou DNI'}">
                     </div>
                     <div class="col-md-6">
                         <label for="registerEmail" class="form-label" data-i18n="session.email">${t.email || 'Email'}</label>
