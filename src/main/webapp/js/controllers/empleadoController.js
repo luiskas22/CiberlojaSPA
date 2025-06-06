@@ -117,7 +117,7 @@ const EmpleadoController = {
         // Validate required fields
         const nombre = formData.get('nombre');
         const apellido1 = formData.get('apellido1');
-        const dniNie = formData.get('dniNie');
+        const nif = formData.get('dniNie');
         const telefono = formData.get('telefono');
         const email = formData.get('email');
         const password = formData.get('password');
@@ -200,7 +200,7 @@ const EmpleadoController = {
             nombre: nombre.trim(),
             apellido1: apellido1.trim(),
             apellido2: formData.get('apellido2')?.trim() || null,
-            dniNie: dniNie.trim(),
+            dniNie: nif.trim(),
             telefono: telefono.trim(),
             email: email.trim(),
             password: password.trim(),
